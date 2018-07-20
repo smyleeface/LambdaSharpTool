@@ -24,7 +24,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using McMaster.Extensions.CommandLineUtils;
 using MindTouch.LambdaSharp.Tool.Internal;
+using MindTouch.LambdaSharp.Tool.Model.AST;
 using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
 using YamlDotNet.Serialization;
@@ -65,24 +67,51 @@ namespace MindTouch.LambdaSharp.Tool {
             };
 
             // read variables, if any
-            var variables = new Dictionary<string, string>();
+            var variables = new Dictionary<string, VariableNode>();
             if(outputDocument.Values.FirstOrDefault() is YamlMap rootMap) {
 
                 // find `Variables` section
-                var variablesEntry = rootMap.Entries.FirstOrDefault(entry => entry.Key.Scalar.Value == "Variables");
-                if(variablesEntry.Value != null) {
+                if(rootMap.TryGetKey("Variables", out AYamlValue variablesValue)) {
 
                     // remove `Variables` from root map
                     rootMap.Entries = rootMap.Entries.Where(entry => entry.Key.Scalar.Value != "Variables").ToList();
 
                     // parse `Variables` into a dictionary
                     AtLocation("Variables", () => {
-                        if(variablesEntry.Value is YamlMap variablesMap) {
-                            variables = variablesMap.Entries.Select(entry => new KeyValuePair<string,string>(
+                        if(variablesValue is YamlMap variablesMap) {
+                            variables = variablesMap.Entries.Select(entry => new KeyValuePair<string, VariableNode>(
                                 entry.Key.Scalar.Value,
                                 AtLocation(entry.Key.Scalar.Value, () => {
                                     if(entry.Value is YamlScalar scalar) {
-                                        return scalar.Scalar.Value;
+
+                                        // entry is a simple string
+                                        return new VariableNode(scalar.Scalar.Value);
+                                    } else if(entry.Value is YamlMap map) {
+
+                                        // entry could be an interactive value
+                                        var variableNode = new VariableNode();
+                                        if(map.TryGetKey("Prompt", out AYamlValue promptValue)) {
+                                            AtLocation("Prompt", () => {
+                                                if(promptValue is YamlScalar promptScalar) {
+                                                    variableNode.Prompt = promptScalar.Scalar.Value;
+                                                } else {
+                                                    AddError("must be a string value");
+                                                }
+                                            });
+                                        } else {
+                                            AddError("missing `Prompt:` attribute");
+                                            return null;
+                                        }
+                                        if(map.TryGetKey("Encrypt", out AYamlValue encryptValue)) {
+                                            AtLocation("Encrypt", () => {
+                                                if(encryptValue is YamlScalar encryptScalar) {
+                                                    variableNode.Encrypt = encryptScalar.Scalar.Value;
+                                                } else {
+                                                    AddError("must be a string value");
+                                                }
+                                            });
+                                        }
+                                        return variableNode;
                                     }
                                     AddError("must be a string value");
                                     return null;
@@ -96,33 +125,34 @@ namespace MindTouch.LambdaSharp.Tool {
                 }
 
                 // find `Name` attribute
-                var nameEntry = rootMap.Entries.FirstOrDefault(entry => entry.Key.Scalar.Value == "Name");
-                AtLocation("Name", () => {
-                    if(nameEntry.Value is YamlScalar nameScaler) {
-                        variables["Name"] = nameScaler.Scalar.Value;
-                    } else {
-                        AddError("`Name` attribute expected to be a string");
-                    }
-                });
+                if(rootMap.TryGetKey("Name", out AYamlValue nameValue)) {
+                    AtLocation("Name", () => {
+                        if(nameValue is YamlScalar nameScaler) {
+                            variables["Name"] = new VariableNode(nameScaler.Scalar.Value);
+                        } else {
+                            AddError("`Name` attribute expected to be a string");
+                        }
+                    });
+                }
             }
 
             // add built-in variables
-            variables["Deployment"] = Settings.Deployment;
-            variables["GitSha"] = Settings.GitSha;
-            variables["AwsRegion"] = Settings.AwsRegion;
-            variables["AwsAccountId"] = Settings.AwsAccountId;
+            variables["Deployment"] = new VariableNode(Settings.Deployment);
+            variables["GitSha"] = new VariableNode(Settings.GitSha);
+            variables["AwsRegion"] = new VariableNode(Settings.AwsRegion);
+            variables["AwsAccountId"] = new VariableNode(Settings.AwsAccountId);
             
             // isolate bound variables (i.e. variables that contain other variables)
             var boundVariables = variables
-                .Where(kv => Regex.IsMatch(kv.Value, VARIABLE_PATTERN))
+                .Where(kv => (kv.Value.Value == null) || Regex.IsMatch(kv.Value.Value, VARIABLE_PATTERN))
                 .ToDictionary(kv => kv.Key, kv => kv.Value);
 
             // isolate free variables (i.e. variables that are free of dependencies)
             var freeVariables = variables
-                .Where(kv => !Regex.IsMatch(kv.Value, VARIABLE_PATTERN))
-                .ToDictionary(kv => kv.Key, kv => kv.Value);
+                .Where(kv => (kv.Value.Value != null) && !Regex.IsMatch(kv.Value.Value, VARIABLE_PATTERN))
+                .ToDictionary(kv => kv.Key, kv => kv.Value.Value);
 
-            // attempt to converte all bound variables to free variables
+            // attempt to convert all bound variables to free variables
             AtLocation("Variables", () => {
                 bool progress;
                 do {
@@ -130,9 +160,28 @@ namespace MindTouch.LambdaSharp.Tool {
                     foreach(var variable in boundVariables.ToList()) {
                         AtLocation(variable.Key, () => {
                             var clean = true;
+                            if(variable.Value.Value == null) {
 
-                            // attempt to replace all variable references using only free variables
-                            var value = Substitute(freeVariables, variable.Value, _ => clean = false);
+                                // check if the prompt needs any substitutions
+                                AtLocation("Prompt", () => {
+                                    clean = !Regex.IsMatch(variable.Value.Prompt, VARIABLE_PATTERN);
+                                    if(!clean) {
+
+                                        // attempt to substitute the missing variables in the prompt
+                                        variable.Value.Prompt = Substitute(freeVariables, variable.Value.Prompt, _ => { });
+                                        clean = !Regex.IsMatch(variable.Value.Prompt, VARIABLE_PATTERN);
+                                    }
+                                    if(clean) {
+
+                                        // prompt is clean and ready to be used
+                                        variable.Value.Value = Prompt.GetString(variable.Value.Prompt);
+                                    }
+                                });
+                            } else {
+
+                                // attempt to replace all variable references using only free variables
+                                variable.Value.Value = Substitute(freeVariables, variable.Value.Value, _ => clean = false);
+                            }
                             if(clean) {
 
                                 // capture that progress towards resolving all bound variables has been made;
@@ -141,7 +190,7 @@ namespace MindTouch.LambdaSharp.Tool {
                                 progress = true;
 
                                 // promote bound variable to free variable
-                                freeVariables[variable.Key] = value;
+                                freeVariables[variable.Key] = variable.Value.Value;
                                 boundVariables.Remove(variable.Key);
                             }
                         });
@@ -151,13 +200,25 @@ namespace MindTouch.LambdaSharp.Tool {
                 // report any remaining bound variables
                 foreach(var variable in boundVariables) {
                     AtLocation(variable.Key, () => {
-                        Substitute(freeVariables, variable.Value, missingName => {
-                            if(boundVariables.ContainsKey(missingName)) {
-                                AddError($"circular dependency on '{missingName}'");
-                            } else {
-                                AddError($"unknown variable reference '{missingName}'");
-                            }
-                        });
+                        if(variable.Value.Value == null) {
+                            AtLocation("Prompt", () => {
+                                Substitute(freeVariables, variable.Value.Prompt, missingName => {
+                                    if(boundVariables.ContainsKey(missingName)) {
+                                        AddError($"circular dependency on '{missingName}'");
+                                    } else {
+                                        AddError($"unknown variable reference '{missingName}'");
+                                    }
+                                });
+                            });
+                        } else {
+                            Substitute(freeVariables, variable.Value.Value, missingName => {
+                                if(boundVariables.ContainsKey(missingName)) {
+                                    AddError($"circular dependency on '{missingName}'");
+                                } else {
+                                    AddError($"unknown variable reference '{missingName}'");
+                                }
+                            });
+                        }
                     });
                 }
             });

@@ -23,6 +23,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
 
@@ -76,6 +77,11 @@ namespace MindTouch.LambdaSharp.Tool.Internal {
         public MappingEnd End { get; set; }
 
         //--- Methods ---
+        public bool TryGetKey(string key, out AYamlValue value) {
+            value = Entries.FirstOrDefault(entry => entry.Key.Scalar.Value == key).Value;
+            return value != null;
+        }
+
         public override void AppendTo(List<ParsingEvent> parsingEvents) {
             parsingEvents.Add(Start);
             foreach(var entry in Entries) {
