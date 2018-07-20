@@ -50,7 +50,8 @@ namespace MindTouch.LambdaSharp.Tool {
         private const string PARAMETERSFILE = "parameters.json";
         private const string CLOUDFORMATION_ID_PATTERN = "[a-zA-Z][a-zA-Z0-9]*";
         private const string IMPORT_PATTERN = "^/?[a-zA-Z][a-zA-Z0-9]*(/[a-zA-Z][a-zA-Z0-9]*)*/?$";
-        private const string SECRET_ALIAS_PATTERN = "[0-9a-zA-Z/_\\-]+";
+        private const string SECRET_ALIAS_PATTERN = "alias/[0-9a-zA-Z/_\\-]+";
+        private const string ALIAS_PREFIX = "alias/";
 
         //--- Fields ---
         private App _app;
@@ -121,14 +122,6 @@ namespace MindTouch.LambdaSharp.Tool {
                 Description = app.Description
             };
 
-            // convert secrets
-            var secretIndex = 0;
-            _app.Secrets = AtLocation("Secrets", () => app.Secrets
-                .Select(secret => ConvertSecret(++secretIndex, secret))
-                .Where(secret => secret != null)
-                .ToList()
-            , new List<string>());
-
             // check if we need to add a 'RollbarToken' parameter node
             if(
                 (_app.Settings.RollbarCustomResourceTopicArn != null)
@@ -152,6 +145,14 @@ namespace MindTouch.LambdaSharp.Tool {
 
             // resolve all imported parameters
             ImportValuesFromParameterStore(app);
+
+            // convert secrets
+            var secretIndex = 0;
+            _app.Secrets = AtLocation("Secrets", () => app.Secrets
+                .Select(secret => ConvertSecret(++secretIndex, secret))
+                .Where(secret => secret != null)
+                .ToList()
+            , new List<string>());
 
             // convert parameters
             _app.Parameters = AtLocation("Parameters", () => ConvertParameters(app.Parameters), null) ?? new List<AParameter>();
@@ -188,19 +189,28 @@ namespace MindTouch.LambdaSharp.Tool {
             return _app;
         }
 
-        public string ConvertSecret(int index, object rawSecret) {
+        public string ConvertSecret(int index, string secret) {
             return AtLocation($"[{index}]", () => {
 
                 // resolve secret value
-                var secret = rawSecret as string;
                 if(string.IsNullOrEmpty(secret)) {
-                    AddError($"secret has no value");
+                    AddError("secret has no value");
                     return null;
                 }
 
-                if(secret.Equals("aws/ssm", StringComparison.OrdinalIgnoreCase)) {
-                    AddError($"cannot grant permission to decrypt with aws/ssm");
+                // check if secret is a reserved alias that cannot be imported
+                if(secret.Equals("aws/ssm", StringComparison.Ordinal)) {
+                    AddError("cannot grant permission to decrypt with aws/ssm");
                     return null;
+                }
+
+                // check if secret is an imported value
+                if(secret.StartsWith("/", StringComparison.Ordinal)) {
+                    if(!_importer.TryGetValue(secret, out string value)) {
+                        AddError($"unable to import secret: {secret}");
+                        return null;
+                    }
+                    return value;
                 }
 
                 // check if secret is an ARN or KMS alias
@@ -217,14 +227,17 @@ namespace MindTouch.LambdaSharp.Tool {
                 }
 
                 // validate regex for secret alias
-                if(!Regex.IsMatch(secret, SECRET_ALIAS_PATTERN)) {
+                if(
+                    secret.StartsWith(ALIAS_PREFIX, StringComparison.Ordinal) 
+                    && !Regex.IsMatch(secret, SECRET_ALIAS_PATTERN)
+                ) {
                     AddError("secret key must be a valid alias");
                     return null;
                 }
 
                 // assume key name is an alias and resolve it to its ARN
                 try {
-                    var response = _app.Settings.KmsClient.DescribeKeyAsync($"alias/{secret}").Result;
+                    var response = _app.Settings.KmsClient.DescribeKeyAsync(secret).Result;
                     return response.KeyMetadata.Arn;
                 } catch(Exception e) {
                     AddError($"failed to resolve key alias: {secret}", e);
@@ -972,6 +985,7 @@ namespace MindTouch.LambdaSharp.Tool {
         private void ImportValuesFromParameterStore(AppNode app) {
 
             // find all parameters with an `Import` field
+            AtLocation("Secrets", () => FindAllSecretImports());
             AtLocation("Parameters", () => FindAllParameterImports());
             AtLocation("Functions", () => FindAllFunctionImports());
 
@@ -985,6 +999,37 @@ namespace MindTouch.LambdaSharp.Tool {
             return;
 
             // local functions
+            void FindAllSecretImports() {
+                for(var i = 0; i < app.Secrets.Count; ++i) {
+                    var secret = app.Secrets[i];
+                    AtLocation(secret, () => {
+                        if(
+                            secret.StartsWith("arn:", StringComparison.Ordinal) 
+                            || secret.StartsWith("alias/", StringComparison.Ordinal)
+                            || secret.StartsWith("aws/", StringComparison.Ordinal)
+                        ) {
+
+                            // nothing to import
+                        } else if(secret.StartsWith("/", StringComparison.Ordinal)) {
+
+                            // absolute reference
+                            _importer.Add(secret);
+                        } else if(secret.Contains('/', StringComparison.Ordinal)) {
+
+                            // relative reference
+                            secret = $"/{_app.Settings.Deployment}/{secret}";
+                            app.Secrets[i] = secret;
+                            _importer.Add(secret);
+                        } else {
+
+                            // add missing "alias/" prefix
+                            secret = $"alias/{secret}";
+                            app.Secrets[i] = secret;
+                        }
+                    });
+                }
+            }
+
             void FindAllParameterImports(IEnumerable<ParameterNode> @params = null) {
                 var paramIndex = 0;
                 foreach(var param in @params ?? app.Parameters) {
