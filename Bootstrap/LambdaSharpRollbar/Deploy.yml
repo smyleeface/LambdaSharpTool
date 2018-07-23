@@ -4,22 +4,33 @@ Name: LambdaSharpRollbar
 
 Description: LambdaSharp's custom resource handler for Rollbar resources
 
-# Secrets:
-#   - ...
+Variables:
+  PostServerItem:
+    Prompt: "Enter the `post_server_item` token for the `{{Deployment}}-LambdaSharpRollbar` Rollbar project:"
+    Encrypt: LambdaSharp/SecretsKey
+  ReadAccessToken:
+    Prompt: "Enter the `read` access token for the Rollbar account:"
+    Encrypt: LambdaSharp/SecretsKey
+  WriteAccessToken:
+    Prompt: "Enter the `write` access token for the Rollbar account:"
+    Encrypt: LambdaSharp/SecretsKey
+
+Secrets:
+  - LambdaSharp/SecretsKey
 
 Parameters:
 
   - Name: RollbarToken
     Description: Rollbar project for custom resource handler
-    Secret: ...
+    Secret: "{{PostServerItem}}"
 
   - Name: ReadAccessToken
     Description: Account-level token for read operations
-    Secret: ...
+    Secret: "{{ReadAccessToken}}"
 
   - Name: WriteAccessToken
     Description: Account-level token for write operations
-    Secret: ...
+    Secret: "{{WriteAccessToken}}"
 
   - Name: RollbarProjectCustomResourceTopic
     Description: Custom resource topic for Rollbar projects
