@@ -2,14 +2,6 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "LambdaSharp CloudFormation Test",
   "Resources": {
-    "Sqs1": {
-      "Type": "AWS::SQS::Queue",
-      "Properties": {}
-    },
-    "Sqs2": {
-      "Type": "AWS::SQS::Queue",
-      "Properties": {}
-    },
     "RollbarToken": {
       "Type": "Custom::LambdaSharpRollbarProject",
       "Properties": {
@@ -54,44 +46,6 @@
                 {
                   "Effect": "Allow",
                   "Action": [
-                    "sqs:ChangeMessageVisibility",
-                    "sqs:ChangeMessageVisibilityBatch",
-                    "sqs:DeleteMessage",
-                    "sqs:DeleteMessageBatch",
-                    "sqs:GetQueueAttributes",
-                    "sqs:GetQueueUrl",
-                    "sqs:ListQueueTags",
-                    "sqs:ReceiveMessage"
-                  ],
-                  "Resource": {
-                    "Fn::GetAtt": [
-                      "Sqs1",
-                      "Arn"
-                    ]
-                  }
-                },
-                {
-                  "Effect": "Allow",
-                  "Action": [
-                    "sqs:ChangeMessageVisibility",
-                    "sqs:ChangeMessageVisibilityBatch",
-                    "sqs:DeleteMessage",
-                    "sqs:DeleteMessageBatch",
-                    "sqs:GetQueueAttributes",
-                    "sqs:GetQueueUrl",
-                    "sqs:ListQueueTags",
-                    "sqs:ReceiveMessage"
-                  ],
-                  "Resource": {
-                    "Fn::GetAtt": [
-                      "Sqs2",
-                      "Arn"
-                    ]
-                  }
-                },
-                {
-                  "Effect": "Allow",
-                  "Action": [
                     "sqs:SendMessage"
                   ],
                   "Resource": "arn:aws:sqs:us-east-1:123456789012:LambdaSharp-DeadLetterQueue"
@@ -120,12 +74,6 @@
             "STACKNAME": "test-Test",
             "DEADLETTERQUEUE": "https://sqs.us-east-1.amazonaws.com/123456789012/LambdaSharp-DeadLetterQueue",
             "LAMBDARUNTIME": "dotnetcore2.1",
-            "STACK_SQS1": {
-              "Ref": "Sqs1"
-            },
-            "STACK_SQS2": {
-              "Ref": "Sqs2"
-            },
             "STACK_ROLLBARTOKEN": {
               "Fn::GetAtt": [
                 "RollbarToken",
@@ -157,36 +105,31 @@
         "Timeout": "30"
       }
     },
-    "FunctionSqs1EventMapping": {
-      "Type": "AWS::Lambda::EventSourceMapping",
+    "FunctionAlexaPermission1": {
+      "Type": "AWS::Lambda::Permission",
       "Properties": {
-        "BatchSize": 10,
-        "Enabled": true,
-        "EventSourceArn": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
           "Fn::GetAtt": [
-            "Sqs1",
+            "Function",
             "Arn"
           ]
         },
-        "FunctionName": {
-          "Ref": "Function"
-        }
+        "Principal": "alexa-appkit.amazon.com"
       }
     },
-    "FunctionSqs2EventMapping": {
-      "Type": "AWS::Lambda::EventSourceMapping",
+    "FunctionAlexaPermission4E6381D": {
+      "Type": "AWS::Lambda::Permission",
       "Properties": {
-        "BatchSize": 1,
-        "Enabled": true,
-        "EventSourceArn": {
+        "Action": "lambda:InvokeFunction",
+        "EventSourceToken": "amzn1.ask.skill.xxxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        "FunctionName": {
           "Fn::GetAtt": [
-            "Sqs2",
+            "Function",
             "Arn"
           ]
         },
-        "FunctionName": {
-          "Ref": "Function"
-        }
+        "Principal": "alexa-appkit.amazon.com"
       }
     }
   }

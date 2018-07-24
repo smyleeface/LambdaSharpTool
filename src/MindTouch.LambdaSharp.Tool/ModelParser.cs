@@ -756,19 +756,20 @@ namespace MindTouch.LambdaSharp.Tool {
         public AFunctionSource ConvertFunctionSource(int index, FunctionSourceNode source) {
             return AtLocation<AFunctionSource>($"{index}", () => {
                 if(source.Topic != null) {
-                    ValidateNotBothStatements("Topic", "Schedule", source.Schedule == null);
-                    ValidateNotBothStatements("Topic", "Api", source.Api == null);
-                    ValidateNotBothStatements("Topic", "SlackCommand", source.SlackCommand == null);
-                    ValidateNotBothStatements("Topic", "S3", source.S3 == null);
-                    ValidateNotBothStatements("Topic", "Events", source.Events == null);
-                    ValidateNotBothStatements("Topic", "Prefix", source.Prefix == null);
-                    ValidateNotBothStatements("Topic", "Suffix", source.Suffix == null);
-                    ValidateNotBothStatements("Topic", "Sqs", source.Sqs == null);
                     return new TopicSource {
                         TopicName = AtLocation("Topic", () => {
-                            var topicName = source.Topic;
+                            ValidateNotBothStatements("Schedule", source.Schedule == null);
+                            ValidateNotBothStatements("Api", source.Api == null);
+                            ValidateNotBothStatements("SlackCommand", source.SlackCommand == null);
+                            ValidateNotBothStatements("S3", source.S3 == null);
+                            ValidateNotBothStatements("Events", source.Events == null);
+                            ValidateNotBothStatements("Prefix", source.Prefix == null);
+                            ValidateNotBothStatements("Suffix", source.Suffix == null);
+                            ValidateNotBothStatements("Sqs", source.Sqs == null);
+                            ValidateNotBothStatements("Alexa", source.Alexa == null);
 
                             // verify `Parameters` sections contains a valid topic reference
+                            var topicName = source.Topic;
                             var parameter = _app.Parameters.FirstOrDefault(param => param.Name == topicName);
                             if(parameter == null) {
                                 AddError($"could not find parameter for SNS topic: '{topicName}'");
@@ -782,14 +783,15 @@ namespace MindTouch.LambdaSharp.Tool {
                     };
                 }
                 if(source.Schedule != null) {
-                    ValidateNotBothStatements("Schedule", "Api", source.Api == null);
-                    ValidateNotBothStatements("Schedule", "SlackCommand", source.SlackCommand == null);
-                    ValidateNotBothStatements("Schedule", "S3", source.S3 == null);
-                    ValidateNotBothStatements("Schedule", "Events", source.Events == null);
-                    ValidateNotBothStatements("Schedule", "Prefix", source.Prefix == null);
-                    ValidateNotBothStatements("Schedule", "Suffix", source.Suffix == null);
-                    ValidateNotBothStatements("Schedule", "Sqs", source.Sqs == null);
                     return AtLocation("Schedule", () => {
+                        ValidateNotBothStatements("Api", source.Api == null);
+                        ValidateNotBothStatements("SlackCommand", source.SlackCommand == null);
+                        ValidateNotBothStatements("S3", source.S3 == null);
+                        ValidateNotBothStatements("Events", source.Events == null);
+                        ValidateNotBothStatements("Prefix", source.Prefix == null);
+                        ValidateNotBothStatements("Suffix", source.Suffix == null);
+                        ValidateNotBothStatements("Sqs", source.Sqs == null);
+                        ValidateNotBothStatements("Alexa", source.Alexa == null);
 
                         // TODO (2018-06-27, bjorg): missing expression validation
                         return new ScheduleSource {
@@ -799,15 +801,16 @@ namespace MindTouch.LambdaSharp.Tool {
                     }, null);
                 }
                 if(source.Api != null) {
-                    ValidateNotBothStatements("Api", "S3", source.S3 == null);
-                    ValidateNotBothStatements("Api", "Events", source.Events == null);
-                    ValidateNotBothStatements("Api", "Prefix", source.Prefix == null);
-                    ValidateNotBothStatements("Api", "Suffix", source.Suffix == null);
-                    ValidateNotBothStatements("Api", "Sqs", source.Sqs == null);
                     return AtLocation("Api", () => {
-                        var api = source.Api.Trim();
+                        ValidateNotBothStatements("S3", source.S3 == null);
+                        ValidateNotBothStatements("Events", source.Events == null);
+                        ValidateNotBothStatements("Prefix", source.Prefix == null);
+                        ValidateNotBothStatements("Suffix", source.Suffix == null);
+                        ValidateNotBothStatements("Sqs", source.Sqs == null);
+                        ValidateNotBothStatements("Alexa", source.Alexa == null);
 
                         // extract http method from route
+                        var api = source.Api.Trim();
                         var pathSeparatorIndex = api.IndexOfAny(new[] { ':', ' ' });
                         if(pathSeparatorIndex < 0) {
                             AddError("invalid api format");
@@ -833,12 +836,13 @@ namespace MindTouch.LambdaSharp.Tool {
                     }, null);
                 }
                 if(source.SlackCommand != null) {
-                    ValidateNotBothStatements("SlackCommand", "S3", source.S3 == null);
-                    ValidateNotBothStatements("SlackCommand", "Events", source.Events == null);
-                    ValidateNotBothStatements("SlackCommand", "Prefix", source.Prefix == null);
-                    ValidateNotBothStatements("SlackCommand", "Suffix", source.Suffix == null);
-                    ValidateNotBothStatements("SlackCommand", "Sqs", source.Sqs == null);
                     return AtLocation("SlackCommand", () => {
+                        ValidateNotBothStatements("S3", source.S3 == null);
+                        ValidateNotBothStatements("Events", source.Events == null);
+                        ValidateNotBothStatements("Prefix", source.Prefix == null);
+                        ValidateNotBothStatements("Suffix", source.Suffix == null);
+                        ValidateNotBothStatements("Sqs", source.Sqs == null);
+                        ValidateNotBothStatements("Alexa", source.Alexa == null);
 
                         // parse integration into a valid enum
                         return new ApiGatewaySource {
@@ -849,8 +853,9 @@ namespace MindTouch.LambdaSharp.Tool {
                     }, null);
                 }
                 if(source.S3 != null) {
-                    ValidateNotBothStatements("S3", "Sqs", source.Sqs == null);
                     return AtLocation("S3", () => {
+                        ValidateNotBothStatements("Sqs", source.Sqs == null);
+                        ValidateNotBothStatements("Alexa", source.Alexa == null);
 
                         // TODO (2018-06-27, bjorg): missing events, prefix, suffix validation
                         var s3 = new S3Source {
@@ -877,10 +882,11 @@ namespace MindTouch.LambdaSharp.Tool {
                     }, null);
                 }
                 if(source.Sqs != null) {
-                    ValidateNotBothStatements("Sqs", "Events", source.Events == null);
-                    ValidateNotBothStatements("Sqs", "Prefix", source.Prefix == null);
-                    ValidateNotBothStatements("Sqs", "Suffix", source.Suffix == null);
                     return AtLocation("Sqs", () => {
+                        ValidateNotBothStatements("Events", source.Events == null);
+                        ValidateNotBothStatements("Prefix", source.Prefix == null);
+                        ValidateNotBothStatements("Suffix", source.Suffix == null);
+                        ValidateNotBothStatements("Alexa", source.Alexa == null);
                         var sqs = new SqsSource {
                             Queue = source.Sqs,
                             BatchSize = source.BatchSize ?? 10
@@ -903,15 +909,22 @@ namespace MindTouch.LambdaSharp.Tool {
                         return sqs;
                     }, null);
                 }
+                if(source.Alexa != null) {
+                    return AtLocation("Alexa", () => {
+                        return new AlexaSource {
+                            EventSourceToken = string.IsNullOrWhiteSpace(source.Alexa) ? null : source.Alexa
+                        };
+                    }, null);
+                }
                 AddError("empty event");
                 return null;
             }, null);
             throw new ModelParserException("invalid function event");
 
             // local functions
-            void ValidateNotBothStatements(string statement1, string statement2, bool condition) {
+            void ValidateNotBothStatements(string attribute, bool condition) {
                 if(!condition) {
-                    AddError($"cannot have '{statement1}' and '{statement2}' at the same time");
+                    AddError($"attribute '{attribute}' is not allowe here");
                 }
             }
         }

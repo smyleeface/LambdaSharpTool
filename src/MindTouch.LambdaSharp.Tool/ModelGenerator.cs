@@ -546,6 +546,24 @@ namespace MindTouch.LambdaSharp.Tool {
                     });
                 }
             }
+
+            // check if function has any Alexa event sources
+            var alexaSources = function.Sources.OfType<AlexaSource>().ToList();
+            if(alexaSources.Any()) {
+                var index = 0;
+                foreach(var source in alexaSources) {
+                    ++index;
+                    var suffix = (source.EventSourceToken != null)
+                        ? source.EventSourceToken.ToMD5Hash().Substring(0, 7)
+                        : index.ToString();
+                    _stack.Add($"{function.Name}AlexaPermission{suffix}", new Lambda.Permission {
+                        Action = "lambda:InvokeFunction",
+                        FunctionName = Fn.GetAtt(function.Name, "Arn"),
+                        Principal = "alexa-appkit.amazon.com",
+                        EventSourceToken = source.EventSourceToken
+                    });
+                }
+            }
         }
 
         private void AddParameter(
