@@ -29,13 +29,13 @@ using MindTouch.LambdaSharp;
 
 namespace ScheduleSample.MyFunction {
 
-    public class Function : ALambdaFunction<LambdaScheduleEvent> {
+    public class Function : ALambdaFunction<LambdaScheduleEvent, string> {
 
         //--- Methods ---
         public override Task InitializeAsync(LambdaConfig config)
             => Task.CompletedTask;
 
-        public override async Task<object> ProcessMessageAsync(LambdaScheduleEvent schedule, ILambdaContext context) {
+        public override Task<string> ProcessMessageAsync(LambdaScheduleEvent schedule, ILambdaContext context) {
             LogInfo($"Version = {schedule.Version}");
             LogInfo($"Id = {schedule.Id}");
             LogInfo($"Source = {schedule.Source}");
@@ -43,7 +43,7 @@ namespace ScheduleSample.MyFunction {
             LogInfo($"Time = {schedule.Time}");
             LogInfo($"Region = {schedule.Region}");
             LogInfo($"Name = {schedule.Name}");
-            return "Ok";
+            return Task.FromResult("Ok");
         }
     }
 }

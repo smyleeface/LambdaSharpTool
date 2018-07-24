@@ -30,13 +30,13 @@ using MindTouch.LambdaSharp;
 
 namespace SqsSample.MyFunction {
 
-    public class Function : ALambdaFunction<SQSEvent> {
+    public class Function : ALambdaFunction<SQSEvent, string> {
 
         //--- Methods ---
         public override Task InitializeAsync(LambdaConfig config)
             => Task.CompletedTask;
 
-        public override async Task<object> ProcessMessageAsync(SQSEvent evt, ILambdaContext context) {
+        public override Task<string> ProcessMessageAsync(SQSEvent evt, ILambdaContext context) {
             LogInfo($"# SQS Records = {evt.Records.Count}");
             for(var i = 0; i < evt.Records.Count; ++i) {
                 var record = evt.Records[i];
@@ -54,7 +54,7 @@ namespace SqsSample.MyFunction {
                     LogInfo($"MessageAttributes.{attribute.Key} = {attribute.Value}");
                 }
             }
-            return "Ok";
+            return Task.FromResult("Ok");
         }
     }
 }
