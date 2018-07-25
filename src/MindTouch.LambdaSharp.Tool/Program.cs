@@ -260,7 +260,7 @@ namespace MindTouch.LambdaSharp.Tool {
             var deploymentNotificationTopicArnOption = command.Option("--deployment-notification-topic-arn <ARN>", "(test only) SNS Topic used by CloudFormation deploymetions (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
             var boostrapOption = command.Option("--bootstrap", "(boostrap only) Don't read LambdaSharp initialization values", CommandOptionType.NoValue);
             var deploymentRollbarCustomResourceTopicArnOption = command.Option("--deployment-rollbar-customresource-topic-arn <ARN>", "(test only) SNS Topic for creating Rollbar projects (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
-            var deploymentS3SyncCustomResourceTopicArnOption = command.Option("--deployment-s3sync-customresource-topic-arn <ARN>", "(test only) SNS Topic for synchronizing S3 buckets (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
+            var deploymentS3PackageLoaderCustomResourceTopicArnOption = command.Option("--deployment-s3packageloader-customresource-topic-arn <ARN>", "(test only) SNS Topic for synchronizing S3 buckets (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
             return async () => {
                 var boostrap = boostrapOption.HasValue();
 
@@ -336,7 +336,7 @@ namespace MindTouch.LambdaSharp.Tool {
                 var deploymentDeadletterQueueUrl = deploymentDeadletterQueueUrlOption.Value();
                 var deploymentNotificationTopicArn = deploymentNotificationTopicArnOption.Value();
                 var deploymentRollbarCustomResourceTopicArn = deploymentRollbarCustomResourceTopicArnOption.Value();
-                var deploymentS3SyncCustomResourceTopicArn = deploymentS3SyncCustomResourceTopicArnOption.Value();
+                var deploymentS3PackageLoaderCustomResourceTopicArn = deploymentS3PackageLoaderCustomResourceTopicArnOption.Value();
                 if(boostrap) {
                     Console.WriteLine($"Bootstrapping LambdaSharp for `{deployment}'");
                 } else if(
@@ -344,7 +344,7 @@ namespace MindTouch.LambdaSharp.Tool {
                     || (deploymentDeadletterQueueUrl == null)
                     || (deploymentNotificationTopicArn == null)
                     || (deploymentRollbarCustomResourceTopicArn == null)
-                    || (deploymentS3SyncCustomResourceTopicArn == null)
+                    || (deploymentS3PackageLoaderCustomResourceTopicArn == null)
                 ) {
                     Console.WriteLine($"Retrieving LambdaSharp settings for `{deployment}'");
 
@@ -371,7 +371,7 @@ namespace MindTouch.LambdaSharp.Tool {
                     deploymentRollbarCustomResourceTopicArn = deploymentRollbarCustomResourceTopicArn ?? GetLambdaSharpSetting("RollbarCustomResourceTopic");
 
                     // S3 synchronization topic is optional, so don't check for null
-                    deploymentS3SyncCustomResourceTopicArn = deploymentS3SyncCustomResourceTopicArn ?? GetLambdaSharpSetting("S3SyncCustomResourceTopic");
+                    deploymentS3PackageLoaderCustomResourceTopicArn = deploymentS3PackageLoaderCustomResourceTopicArn ?? GetLambdaSharpSetting("S3PackageLoaderCustomResourceTopic");
 
                     // local functions
                     string GetLambdaSharpSetting(string name) {
@@ -388,7 +388,7 @@ namespace MindTouch.LambdaSharp.Tool {
                     DeadLetterQueueUrl = deploymentDeadletterQueueUrl,
                     DeploymentNotificationTopicArn = deploymentNotificationTopicArn,
                     RollbarCustomResourceTopicArn = deploymentRollbarCustomResourceTopicArn,
-                    S3SyncCustomResourceTopicArn = deploymentS3SyncCustomResourceTopicArn,
+                    S3PackageLoaderCustomResourceTopicArn = deploymentS3PackageLoaderCustomResourceTopicArn,
                     ResourceMapping = new ResourceMapping(),
                     SsmClient = ssmClient,
                     CfClient = cfClient,

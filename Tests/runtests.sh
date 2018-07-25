@@ -6,7 +6,7 @@ dotnet run -p $LAMBDASHARP/src/MindTouch.LambdaSharp.Tool/MindTouch.LambdaSharp.
     --deployment-deadletter-queue-url https://sqs.us-east-1.amazonaws.com/123456789012/LambdaSharp-DeadLetterQueue \
     --deployment-notification-topic-arn  arn:aws:sns:us-east-1:123456789012:LambdaSharp-DeploymentNotificationTopic \
     --deployment-rollbar-customresource-topic-arn arn:aws:sns:us-east-1:123456789012:LambdaSharpRollbar-RollbarCustomResourceTopic \
-    --deployment-s3sync-customresource-topic-arn arn:aws:sns:us-east-1:123456789012:LambdaSharpRollbar-S3SyncCustomResourceTopic
+    --deployment-s3packageloader-customresource-topic-arn arn:aws:sns:us-east-1:123456789012:LambdaSharpRollbar-S3PackageLoaderCustomResourceTopic
 
 lash() {
     dotnet run -p $LAMBDASHARP/src/MindTouch.LambdaSharp.Tool/MindTouch.LambdaSharp.Tool.csproj -- deploy \
@@ -21,7 +21,7 @@ lash() {
         --deployment-deadletter-queue-url https://sqs.us-east-1.amazonaws.com/123456789012/LambdaSharp-DeadLetterQueue \
         --deployment-notification-topic-arn  arn:aws:sns:us-east-1:123456789012:LambdaSharp-DeploymentNotificationTopic \
         --deployment-rollbar-customresource-topic-arn arn:aws:sns:us-east-1:123456789012:LambdaSharpRollbar-RollbarCustomResourceTopic \
-        --deployment-s3sync-customresource-topic-arn arn:aws:sns:us-east-1:123456789012:LambdaSharpRollbar-S3SyncCustomResourceTopic
+        --deployment-s3packageloader-customresource-topic-arn arn:aws:sns:us-east-1:123456789012:LambdaSharpRollbar-S3PackageLoaderCustomResourceTopic
 }
 
 lash Source-Topic

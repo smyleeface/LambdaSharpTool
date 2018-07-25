@@ -40,7 +40,7 @@ namespace MindTouch.LambdaSharp.Tool {
         public string DeadLetterQueueUrl { get; set; }
         public string DeploymentNotificationTopicArn { get; set; }
         public string RollbarCustomResourceTopicArn { get; set; }
-        public string S3SyncCustomResourceTopicArn { get; set; }
+        public string S3PackageLoaderCustomResourceTopicArn { get; set; }
         public ResourceMapping ResourceMapping { get; set; }
         public IAmazonSimpleSystemsManagement SsmClient { get; set; }
         public IAmazonCloudFormation CfClient { get; set; }

@@ -3,7 +3,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <Deterministic>true</Deterministic>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-    <RootNamespace>MindTouch.LambdaSharpS3Sync.ResourceHandler</RootNamespace>
+    <RootNamespace>MindTouch.LambdaSharpS3PackageLoader.ResourceHandler</RootNamespace>
     <AWSProjectType>Lambda</AWSProjectType>
   </PropertyGroup>
   <ItemGroup>

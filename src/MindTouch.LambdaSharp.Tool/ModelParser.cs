@@ -411,8 +411,8 @@ namespace MindTouch.LambdaSharp.Tool {
                             AtLocation("Package", () => {
 
                                 // check if S3 sync topic arn exists
-                                if(_app.Settings.S3SyncCustomResourceTopicArn == null) {
-                                    AddError("parameter package requires S3Sync custom resource handler to be deployed");
+                                if(_app.Settings.S3PackageLoaderCustomResourceTopicArn == null) {
+                                    AddError("parameter package requires S3PackageLoader custom resource handler to be deployed");
                                     return;
                                 }
 
@@ -420,6 +420,17 @@ namespace MindTouch.LambdaSharp.Tool {
                                 if(resourcePrefix != "") {
                                     AddError("parameter package cannot be nested");
                                     return;
+                                }
+
+                                // verify `Parameters` sections contains a valid S3 bucket reference
+                                var bucketParameterName = parameter.Destination.Bucket;
+                                var bucketParameter = _app.Parameters.FirstOrDefault(param => param.Name == bucketParameterName);
+                                if(bucketParameter == null) {
+                                    AddError($"could not find parameter for S3 bucket: '{bucketParameterName}'");
+                                } else if(!(bucketParameter is AResourceParameter resourceParameter)) {
+                                    AddError($"parameter for S3 bucket is not a resource: '{bucketParameterName}'");
+                                } else if(resourceParameter.Resource.Type != "AWS::S3::Bucket") {
+                                    AddError($"parameter for S3 bucket must be an S3 bucket resource: '{bucketParameterName}'");
                                 }
                                 
                                 // find all files that need to be part of the package

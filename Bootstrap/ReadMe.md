@@ -81,7 +81,7 @@ dotnet lash deploy \
 ```bash
 dotnet lash deploy \
     --deployment MyDeployment \
-    --input $LAMBDASHARP/Bootstrap/LambdaSharpS3Sync/Deploy.yml
+    --input $LAMBDASHARP/Bootstrap/LambdaSharpS3PackageLoader/Deploy.yml
 ```
 
 # Appendix: λ# Developer Setup

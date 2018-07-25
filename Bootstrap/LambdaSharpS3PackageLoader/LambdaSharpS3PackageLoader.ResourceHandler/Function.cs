@@ -34,7 +34,7 @@ using MindTouch.LambdaSharp.CustomResource;
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
 
-namespace MindTouch.LambdaSharpS3Sync.ResourceHandler {
+namespace MindTouch.LambdaSharpS3PackageLoader.ResourceHandler {
 
     public class RequestProperties {
 
@@ -42,7 +42,7 @@ namespace MindTouch.LambdaSharpS3Sync.ResourceHandler {
         public string DestinationBucketName { get; set; }
         public string DestinationKeyPrefix { get; set; }
         public string SourceBucketName { get; set; }
-        public string SourceKey { get; set; }
+        public string SourcePackageKey { get; set; }
     }
 
     public class ResponseProperties {
@@ -76,7 +76,7 @@ namespace MindTouch.LambdaSharpS3Sync.ResourceHandler {
         }
 
         private async Task<Response<ResponseProperties>> UploadFiles(RequestProperties properties) {
-            await ProcessZipFileEntriesAsync(properties.SourceBucketName, properties.SourceKey, async entry => {
+            await ProcessZipFileEntriesAsync(properties.SourceBucketName, properties.SourcePackageKey, async entry => {
                 using(var stream = entry.Open()) {
                     var memoryStream = new MemoryStream();
                     await stream.CopyToAsync(memoryStream);
@@ -88,7 +88,7 @@ namespace MindTouch.LambdaSharpS3Sync.ResourceHandler {
                 }
             });
             return new Response<ResponseProperties> {
-                PhysicalResourceId = $"s3sync:{properties.DestinationBucketName}:{properties.DestinationKeyPrefix}/{properties.DestinationKeyPrefix}",
+                PhysicalResourceId = $"s3package:{properties.DestinationBucketName}:{properties.DestinationKeyPrefix}/{properties.DestinationKeyPrefix}",
                 Properties = new ResponseProperties {
                     Result = $"s3://{properties.DestinationBucketName}/{properties.DestinationKeyPrefix}"
                 }
@@ -96,7 +96,7 @@ namespace MindTouch.LambdaSharpS3Sync.ResourceHandler {
         }
 
         private async Task<Response<ResponseProperties>> DeleteFiles(RequestProperties properties) {
-            await ProcessZipFileEntriesAsync(properties.SourceBucketName, properties.SourceKey, async entry => {
+            await ProcessZipFileEntriesAsync(properties.SourceBucketName, properties.SourcePackageKey, async entry => {
                 await _s3Client.DeleteObjectAsync(new DeleteObjectRequest {
                     BucketName = properties.DestinationBucketName,
                     Key = Path.Combine(properties.DestinationKeyPrefix, entry.FullName)
