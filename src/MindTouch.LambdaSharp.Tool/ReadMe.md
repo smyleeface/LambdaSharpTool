@@ -19,7 +19,7 @@ The default filename for the deployment file is `Deploy.yml` in the current work
 CloudFormation stacks created by the λ# tool have termination protection enabled. In addition, subsequent updates cannot delete or replace data resources unless the `--allow-data-loss` option is passed in. This behavior is to reduce the risk of accidental data loss when CloudFormation resources are being accidentally replaced.
 
 ```
-> lst deploy --deployment MyDeployment
+> dotnet lash deploy --deployment MyDeployment
 MindTouch LambdaSharp Tool - Deploy LambdaSharp app
 Retrieving LambdaSharp settings for `MyDeployment'
 Loading 'Deploy.yml'
@@ -88,7 +88,7 @@ The following settings are read from AWS Systems Manager Parameter Store:
 
 
 ```
-> lst info --deployment MyDeployment
+> dotnet lash info --deployment MyDeployment
 MindTouch LambdaSharp Tool - Show LambdaSharp settings
 Retrieving LambdaSharp settings for `MyDeployment'
 Deployment: MyDeployment
@@ -131,7 +131,7 @@ LambdaSharp Rollbar Custom Resource Topic: arn:aws:sns:us-east-1:123456789012:La
 The `new function` command creates a new C# project in the current folder with the required dependencies, as well as a `Function.cs` file with a skeleton AWS Lambda implementation.
 
 ```
-> lst new function --name MyApp.MyFunction --namespace MyCompany.MyApp.MyFunction
+> dotnet lash new function --name MyApp.MyFunction --namespace MyCompany.MyApp.MyFunction
 MindTouch LambdaSharp Tool - Create new LambdaSharp asset
 Created project file: MyApp.MyFunction/MyApp.MyFunction.csproj
 Created function file: MyApp.MyFunction/Function.cs

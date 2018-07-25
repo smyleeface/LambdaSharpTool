@@ -62,8 +62,9 @@ namespace MindTouch.LambdaSharp.Tool {
         //--- Class Methods ---
         public static int Main(string[] args) {
             var app = new CommandLineApplication(throwOnUnexpectedArg: false) {
-                Name = "MindTouch.LambdaSharp.Tool",
-                FullName = $"MindTouch LambdaSharp Tool (v{_version.Major}.{_version.Minor})"
+                Name = "dotnet lash",
+                FullName = $"MindTouch LambdaSharp Tool (v{_version.Major}.{_version.Minor}.{_version.Build}){Environment.NewLine}" +
+                    "Project Home: https://github.com/LambdaSharp/LambdaSharpTool"
             };
             app.HelpOption();
 
@@ -452,7 +453,7 @@ namespace MindTouch.LambdaSharp.Tool {
   <ItemGroup>
     <PackageReference Include=""Amazon.Lambda.Core"" Version=""1.0.0""/>
     <PackageReference Include=""Amazon.Lambda.Serialization.Json"" Version=""1.2.0""/>
-    <PackageReference Include=""MindTouch.LambdaSharp"" Version=""" + _version.Major + "." + _version.Minor + @"""/>
+    <PackageReference Include=""MindTouch.LambdaSharp"" Version=""0.1.3""/>
   </ItemGroup>
   <ItemGroup>
     <DotNetCliToolReference Include=""Amazon.Lambda.Tools"" Version=""2.2.0""/>

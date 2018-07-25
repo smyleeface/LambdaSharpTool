@@ -8,7 +8,7 @@ dotnet run -p $LAMBDASHARP/src/MindTouch.LambdaSharp.Tool/MindTouch.LambdaSharp.
     --deployment-rollbar-customresource-topic-arn arn:aws:sns:us-east-1:123456789012:LambdaSharpRollbar-RollbarCustomResourceTopic \
     --deployment-s3sync-customresource-topic-arn arn:aws:sns:us-east-1:123456789012:LambdaSharpRollbar-S3SyncCustomResourceTopic
 
-lst() {
+lash() {
     dotnet run -p $LAMBDASHARP/src/MindTouch.LambdaSharp.Tool/MindTouch.LambdaSharp.Tool.csproj -- deploy \
         --deployment test \
         --input $1.yml \
@@ -24,11 +24,11 @@ lst() {
         --deployment-s3sync-customresource-topic-arn arn:aws:sns:us-east-1:123456789012:LambdaSharpRollbar-S3SyncCustomResourceTopic
 }
 
-lst Source-Topic
-lst Source-Timer
-lst Source-Api-SlackCommand
-lst Source-Api-RequestResponse
-lst Source-S3
-lst Source-Sqs
-lst Variables
-lst Source-Alexa
+lash Source-Topic
+lash Source-Timer
+lash Source-Api-SlackCommand
+lash Source-Api-RequestResponse
+lash Source-S3
+lash Source-Sqs
+lash Variables
+lash Source-Alexa
