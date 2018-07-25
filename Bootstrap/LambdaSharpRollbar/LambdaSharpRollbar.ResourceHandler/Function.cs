@@ -47,7 +47,6 @@ namespace MindTouch.LambdaSharpRollbar.ResourceHandler {
     public class ResponseProperties {
 
         //--- Properties ---
-        public string Token { get; set; }
         public string Result { get; set; }
     }
 
@@ -98,7 +97,6 @@ namespace MindTouch.LambdaSharpRollbar.ResourceHandler {
                 PhysicalResourceId = $"rollbar:project:{project.Id}",
                 NoEcho = true,
                 Properties = new ResponseProperties {
-                    Token = token,
                     Result = token
                 }
             };
@@ -130,7 +128,6 @@ namespace MindTouch.LambdaSharpRollbar.ResourceHandler {
                 PhysicalResourceId = $"rollbar:project:{project.Id}",
                 NoEcho = true,
                 Properties = new ResponseProperties {
-                    Token = token,
                     Result = token
                 }
             };
