@@ -8,3 +8,6 @@ obj
 # LambdaSharpTool
 cloudformation.json
 *-*.zip
+
+# Nuget packages
+*.nupkg
