@@ -597,6 +597,17 @@ namespace MindTouch.LambdaSharp.Tool {
             case StringParameter stringParameter:
                 exportValue = stringParameter.Value;
                 break;
+            case PackageParameter packageParameter: {
+                    _stack.Add(packageParameter.Name, new Model.CustomResource("Custom::LambdaSharpS3Sync", new Dictionary<string, object> {
+                        ["ServiceToken"] = _app.Settings.S3SyncCustomResourceTopicArn,
+                        ["DestinationBucketName"] = Humidifier.Fn.Ref(packageParameter.Bucket),
+                        ["DestinationKeyPrefix"] = packageParameter.Prefix,
+                        ["SourceBucketName"] = _app.Settings.DeploymentBucketName,
+                        ["SourceKey"] = packageParameter.PackageS3Key,
+                    }));
+                    environmentRefVariable[envPrefix + parameter.Name.ToUpperInvariant()] = Fn.GetAtt(resourcePrefix + parameter.Name, "Result");
+                }
+                break;
             case ReferencedResourceParameter referenceResourceParameter: {
                     var resource = referenceResourceParameter.Resource;
                     exportValue = resource.ResourceArn;

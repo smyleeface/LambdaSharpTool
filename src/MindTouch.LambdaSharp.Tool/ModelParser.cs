@@ -257,137 +257,224 @@ namespace MindTouch.LambdaSharp.Tool {
                         AddError($"parameter name is not valid");
                     }
                     if(parameter.Secret != null) {
-
-                        // encrypted value
                         ValidateNotBothStatements("Secret", "Import", parameter.Import == null);
                         ValidateNotBothStatements("Secret", "Parameters", parameter.Parameters == null);
                         ValidateNotBothStatements("Secret", "Value", parameter.Value == null);
                         ValidateNotBothStatements("Secret", "Values", parameter.Values == null);
+                        ValidateNotBothStatements("Secret", "Package", parameter.Package == null);
                         ValidateNotBothStatements("Secret", "Resource", parameter.Resource == null);
-                        result = new SecretParameter {
-                            Name = parameter.Name,
-                            Description = parameter.Description,
-                            Secret = parameter.Secret,
-                            Export = parameter.Export,
-                            EncryptionContext = null
-                        };
-                    } else if(parameter.Values != null) {
 
-                        // list of values
+                        // encrypted value
+                        AtLocation("Secret", () => {
+                            result = new SecretParameter {
+                                Name = parameter.Name,
+                                Description = parameter.Description,
+                                Secret = parameter.Secret,
+                                Export = parameter.Export,
+                                EncryptionContext = null
+                            };
+                        });
+                    } else if(parameter.Values != null) {
                         ValidateNotBothStatements("Values", "Import", parameter.Import == null);
                         ValidateNotBothStatements("Values", "Parameters", parameter.Parameters == null);
                         ValidateNotBothStatements("Values", "Value", parameter.Value == null);
+                        ValidateNotBothStatements("Values", "Package", parameter.Package == null);
                         ValidateNotBothStatements("Values", "Resource", parameter.Resource == null);
 
-                        // convert a `StringList` into `String` parameter by concatenating the values, separated by a comma (`,`)
-                        var value = AtLocation("Values", () => string.Join(",", parameter.Values), "<BAD>");
-                        result = new StringParameter {
-                            Name = parameter.Name,
-                            Description = parameter.Description,
-                            Value = value,
-                            Export = parameter.Export
-                        };
-                    } else if(parameter.Parameters != null) {
+                        // list of values
+                        AtLocation("Values", () => {
 
-                        // nested values
-                        ValidateNotBothStatements("Parameters", "Import", parameter.Import == null);
-                        ValidateNotBothStatements("Parameters", "Value", parameter.Value == null);
-                        ValidateNotBothStatements("Parameters", "Resource", parameter.Resource == null);
-
-                        // keep nested parameters only if they have values
-                        var nestedParameters = ConvertParameters(
-                            parameter.Parameters,
-                            environmentPrefix + parameter.Name.ToUpperInvariant() + "_",
-                            resourcePrefix + parameter.Name
-                        );
-                        if(nestedParameters.Any()) {
-                            result = new CollectionParameter {
+                            // convert a `StringList` into `String` parameter by concatenating the values, separated by a comma (`,`)
+                            var value = string.Join(",", parameter.Values);
+                            result = new StringParameter {
                                 Name = parameter.Name,
                                 Description = parameter.Description,
-                                Parameters = nestedParameters,
+                                Value = value,
                                 Export = parameter.Export
                             };
-                        }
+                        });
+                    } else if(parameter.Parameters != null) {
+                        ValidateNotBothStatements("Parameters", "Import", parameter.Import == null);
+                        ValidateNotBothStatements("Parameters", "Value", parameter.Value == null);
+                        ValidateNotBothStatements("Parameters", "Package", parameter.Package == null);
+                        ValidateNotBothStatements("Parameters", "Resource", parameter.Resource == null);
+
+                        // nested values
+                        AtLocation("Parameters", () => {
+
+                            // keep nested parameters only if they have values
+                            var nestedParameters = ConvertParameters(
+                                parameter.Parameters,
+                                environmentPrefix + parameter.Name.ToUpperInvariant() + "_",
+                                resourcePrefix + parameter.Name
+                            );
+                            if(nestedParameters.Any()) {
+                                result = new CollectionParameter {
+                                    Name = parameter.Name,
+                                    Description = parameter.Description,
+                                    Parameters = nestedParameters,
+                                    Export = parameter.Export
+                                };
+                            }
+                        });
                     } else if(parameter.Import != null) {
+                        ValidateNotBothStatements("Import", "Value", parameter.Value == null);
+                        ValidateNotBothStatements("Import", "Package", parameter.Package == null);
 
                         // imported value
-                        ValidateNotBothStatements("Import", "Value", parameter.Value == null);
-                        if(parameter.Import.EndsWith("/")) {
+                        AtLocation("Import", () => {
+                            if(parameter.Import.EndsWith("/")) {
 
-                            // TODO (2018-06-03, bjorg): convert multiple imported values into a parameter collection
-                            AtLocation("Import", () => {
+                                // TODO (2018-06-03, bjorg): convert multiple imported values into a parameter collection
                                 AddError("importing parameter hierarchies are not yet supported");
-                            });
-                            if(parameter.Resource != null) {
-                                AddError($"cannot have 'Resource' for importing parameter hierarchies");
-                            }
-                        } else {
-                            var value = AtLocation("Import", () => {
-                                if(_importer.TryGetValue(parameter.Import, out ResolvedImport importedValue)) {
-                                    return importedValue;
-                                }
-                                AddError($"could not find import");
-                                return null;
-                            }, null);
-
-                            // check the imported parameter store type
-                            switch(value?.Type) {
-                            case "String":
-
-                                // imported string value could identify a resource
                                 if(parameter.Resource != null) {
-                                    var resource = AtLocation("Resource", () => ConvertResource(value.Value, parameter.Resource), null);
-                                    result = new ReferencedResourceParameter {
-                                        Name = parameter.Name,
-                                        Description = parameter.Description,
-                                        Resource = resource
-                                    };
-                                } else {
-                                    result = new StringParameter {
-                                        Name = parameter.Name,
-                                        Description = parameter.Description,
-                                        Value = value.Value
-                                    };
+                                    AddError($"cannot have 'Resource' for importing parameter hierarchies");
                                 }
-                                break;
-                            case "StringList":
-                                Validate(parameter.Resource == null, "cannot have 'Resource' when importing a value of type 'StringList'");
-                                result = new StringParameter {
-                                    Name = parameter.Name,
-                                    Description = parameter.Description,
-                                    Value = value.Value
-                                };
-                                break;
-                            case "SecureString":
-                                Validate(parameter.Resource == null, "cannot have 'Resource' when importing a value of type 'SecureString'");
-                                result = new SecretParameter {
-                                    Name = parameter.Name,
-                                    Description = parameter.Description,
-                                    Secret = value.Value,
-                                    EncryptionContext = new Dictionary<string, string> {
-                                        ["PARAMETER_ARN"] = $"arn:aws:ssm:{_app.Settings.AwsRegion}:{_app.Settings.AwsAccountId}:parameter{parameter.Import}"
-                                    }
-                                };
-                                break;
-                            case null:
+                            } else {
+                                if(!_importer.TryGetValue(parameter.Import, out ResolvedImport value)) {
+                                    AddError($"could not find import");
+                                } else {
 
-                                // nothing to do, error has already been reported
-                                break;
-                            default:
-                                AddError($"imported parameter has unsupported type '{value.Type}'");
-                                break;
+                                    // check the imported parameter store type
+                                    switch(value.Type) {
+                                    case "String":
+
+                                        // imported string value could identify a resource
+                                        if(parameter.Resource != null) {
+                                            var resource = AtLocation("Resource", () => ConvertResource(value.Value, parameter.Resource), null);
+                                            result = new ReferencedResourceParameter {
+                                                Name = parameter.Name,
+                                                Description = parameter.Description,
+                                                Resource = resource
+                                            };
+                                        } else {
+                                            result = new StringParameter {
+                                                Name = parameter.Name,
+                                                Description = parameter.Description,
+                                                Value = value.Value
+                                            };
+                                        }
+                                        break;
+                                    case "StringList":
+                                        Validate(parameter.Resource == null, "cannot have 'Resource' when importing a value of type 'StringList'");
+                                        result = new StringParameter {
+                                            Name = parameter.Name,
+                                            Description = parameter.Description,
+                                            Value = value.Value
+                                        };
+                                        break;
+                                    case "SecureString":
+                                        Validate(parameter.Resource == null, "cannot have 'Resource' when importing a value of type 'SecureString'");
+                                        result = new SecretParameter {
+                                            Name = parameter.Name,
+                                            Description = parameter.Description,
+                                            Secret = value.Value,
+                                            EncryptionContext = new Dictionary<string, string> {
+                                                ["PARAMETER_ARN"] = $"arn:aws:ssm:{_app.Settings.AwsRegion}:{_app.Settings.AwsAccountId}:parameter{parameter.Import}"
+                                            }
+                                        };
+                                        break;
+                                    default:
+                                        AddError($"imported parameter has unsupported type '{value.Type}'");
+                                        break;
+                                    }
+                                }
                             }
+
+                        });
+                    } else if(parameter.Package != null) {
+                        ValidateNotBothStatements("Package", "Value", parameter.Value == null);
+                        ValidateNotBothStatements("Package", "Resource", parameter.Resource == null);
+                        if(parameter.Destination == null) {
+                            AddError("missing 'Destination' attribute");
+                        } else if(parameter.Destination.Bucket == null) {
+                            AtLocation("Destination", () => {
+                                AddError("missing 'Bucket' attribute");
+                            });
+                        } else {
+
+                            // a package of one or more files
+                            var files = new List<string>();
+                            AtLocation("Package", () => {
+
+                                // check if S3 sync topic arn exists
+                                if(_app.Settings.S3SyncCustomResourceTopicArn == null) {
+                                    AddError("parameter package requires S3Sync custom resource handler to be deployed");
+                                    return;
+                                }
+
+                                // check if package is nested
+                                if(resourcePrefix != "") {
+                                    AddError("parameter package cannot be nested");
+                                    return;
+                                }
+                                
+                                // find all files that need to be part of the package
+                                string folder;
+                                string filePattern;
+                                SearchOption searchOption;
+                                if((parameter.Package.EndsWith("/", StringComparison.Ordinal) || Directory.Exists(parameter.Package))) {
+                                    folder = Path.GetFullPath(parameter.Package);
+                                    filePattern = "*";
+                                    searchOption = SearchOption.AllDirectories;
+                                } else {
+                                    folder = Path.GetDirectoryName(parameter.Package);
+                                    filePattern = Path.GetFileName(parameter.Package);
+                                    searchOption = SearchOption.TopDirectoryOnly;
+                                }
+                                files.AddRange(Directory.GetFiles(folder, filePattern, searchOption));
+                                files.Sort();
+
+                                // compute MD5 hash for package
+                                string package;
+                                using(var md5 = MD5.Create()) {
+                                    var bytes = new List<byte>();
+                                    foreach(var file in files) {
+                                        using(var stream = File.OpenRead(file)) {
+                                            bytes.AddRange(md5.ComputeHash(stream));
+                                        }
+                                    }
+                                    var hash = string.Concat(md5.ComputeHash(bytes.ToArray()).Select(x => x.ToString("X2")));
+                                    package = $"{_app.Name}-{parameter.Name}-Package-{hash}.zip";
+                                }
+
+                                // create zip package
+                                Console.WriteLine($"=> Building {parameter.Name} package");
+                                if(File.Exists(package)) {
+                                    try {
+                                        File.Delete(package);
+                                    } catch { }
+                                }
+                                using(var zipArchive = ZipFile.Open(package, ZipArchiveMode.Create)) {
+                                    foreach(var file in files) {
+                                        var filename = Path.GetRelativePath(folder, file);
+                                        zipArchive.CreateEntryFromFile(file, filename);
+                                    }
+                                }
+
+                                // package value
+                                result = new PackageParameter {
+                                    Name = parameter.Name,
+                                    Description = parameter.Description,
+                                    Package = package,
+                                    Bucket = parameter.Destination.Bucket,
+                                    PackageS3Key = $"{_app.Settings.Deployment}/{_app.Name}/{package}",
+                                    Prefix = parameter.Destination.Prefix
+                                };
+                            });
                         }
                     } else if(parameter.Value != null) {
                         if(parameter.Resource != null) {
+                            AtLocation("Resource", () => {
 
-                            // existing resource
-                            var resource = AtLocation("Resource", () => ConvertResource(parameter.Value, parameter.Resource), null);
-                            result = new ReferencedResourceParameter {
-                                Name = parameter.Name,
-                                Description = parameter.Description,
-                                Resource = resource
-                            };
+                                // existing resource
+                                var resource = ConvertResource(parameter.Value, parameter.Resource);
+                                result = new ReferencedResourceParameter {
+                                    Name = parameter.Name,
+                                    Description = parameter.Description,
+                                    Resource = resource
+                                };
+                            });
                         } else {
 
                             // plaintext value
@@ -400,11 +487,13 @@ namespace MindTouch.LambdaSharp.Tool {
                     } else {
 
                         // managed resource
-                        result = new CloudFormationResourceParameter {
-                            Name = resourcePrefix + parameter.Name,
-                            Description = parameter.Description,
-                            Resource = AtLocation("Resource", () => ConvertResource(null, parameter.Resource), null)
-                        };
+                        AtLocation("Resource", () => {
+                            result = new CloudFormationResourceParameter {
+                                Name = resourcePrefix + parameter.Name,
+                                Description = parameter.Description,
+                                Resource = ConvertResource(null, parameter.Resource)
+                            };
+                        });
                     }
                 });
                 if(result != null) {
@@ -415,9 +504,9 @@ namespace MindTouch.LambdaSharp.Tool {
             return resultList;
 
             // local functions
-            void ValidateNotBothStatements(string statement1, string statement2, bool condition) {
+            void ValidateNotBothStatements(string attribute1, string attribute2, bool condition) {
                 if(!condition) {
-                    AddError($"cannot have '{statement1}' and '{statement2}' at the same time");
+                    AddError($"attributes '{attribute1}' and '{attribute2}' are not allowed at the same time");
                 }
             }
         }
@@ -706,13 +795,12 @@ namespace MindTouch.LambdaSharp.Tool {
                         // compress folder contents
                         Console.WriteLine("=> Finalizing AWS Lambda package");
                         if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                            using(var md5 = MD5.Create()) {
-                                var bytes = new List<byte>();
-                                using(var zipArchive = ZipFile.Open(zipTempPackage, ZipArchiveMode.Create)) {
-                                    foreach(var file in files) {
-                                        var filename = Path.GetFileName(file);
-                                        zipArchive.CreateEntryFromFile(file, filename);
-                                    }
+                            using(var zipArchive = ZipFile.Open(zipTempPackage, ZipArchiveMode.Create)) {
+                                foreach(var file in files) {
+
+                                    // TODO (2018-07-24, bjorg): I doubt this works correctly for files in subfolders
+                                    var filename = Path.GetFileName(file);
+                                    zipArchive.CreateEntryFromFile(file, filename);
                                 }
                             }
                         } else {
@@ -756,17 +844,17 @@ namespace MindTouch.LambdaSharp.Tool {
         public AFunctionSource ConvertFunctionSource(int index, FunctionSourceNode source) {
             return AtLocation<AFunctionSource>($"{index}", () => {
                 if(source.Topic != null) {
+                    ValidateNotBothStatements("Topic", "Schedule", source.Schedule == null);
+                    ValidateNotBothStatements("Topic", "Api", source.Api == null);
+                    ValidateNotBothStatements("Topic", "SlackCommand", source.SlackCommand == null);
+                    ValidateNotBothStatements("Topic", "S3", source.S3 == null);
+                    ValidateNotBothStatements("Topic", "Events", source.Events == null);
+                    ValidateNotBothStatements("Topic", "Prefix", source.Prefix == null);
+                    ValidateNotBothStatements("Topic", "Suffix", source.Suffix == null);
+                    ValidateNotBothStatements("Topic", "Sqs", source.Sqs == null);
+                    ValidateNotBothStatements("Topic", "Alexa", source.Alexa == null);
                     return new TopicSource {
                         TopicName = AtLocation("Topic", () => {
-                            ValidateNotBothStatements("Schedule", source.Schedule == null);
-                            ValidateNotBothStatements("Api", source.Api == null);
-                            ValidateNotBothStatements("SlackCommand", source.SlackCommand == null);
-                            ValidateNotBothStatements("S3", source.S3 == null);
-                            ValidateNotBothStatements("Events", source.Events == null);
-                            ValidateNotBothStatements("Prefix", source.Prefix == null);
-                            ValidateNotBothStatements("Suffix", source.Suffix == null);
-                            ValidateNotBothStatements("Sqs", source.Sqs == null);
-                            ValidateNotBothStatements("Alexa", source.Alexa == null);
 
                             // verify `Parameters` sections contains a valid topic reference
                             var topicName = source.Topic;
@@ -783,15 +871,15 @@ namespace MindTouch.LambdaSharp.Tool {
                     };
                 }
                 if(source.Schedule != null) {
+                    ValidateNotBothStatements("Schedule", "Api", source.Api == null);
+                    ValidateNotBothStatements("Schedule", "SlackCommand", source.SlackCommand == null);
+                    ValidateNotBothStatements("Schedule", "S3", source.S3 == null);
+                    ValidateNotBothStatements("Schedule", "Events", source.Events == null);
+                    ValidateNotBothStatements("Schedule", "Prefix", source.Prefix == null);
+                    ValidateNotBothStatements("Schedule", "Suffix", source.Suffix == null);
+                    ValidateNotBothStatements("Schedule", "Sqs", source.Sqs == null);
+                    ValidateNotBothStatements("Schedule", "Alexa", source.Alexa == null);
                     return AtLocation("Schedule", () => {
-                        ValidateNotBothStatements("Api", source.Api == null);
-                        ValidateNotBothStatements("SlackCommand", source.SlackCommand == null);
-                        ValidateNotBothStatements("S3", source.S3 == null);
-                        ValidateNotBothStatements("Events", source.Events == null);
-                        ValidateNotBothStatements("Prefix", source.Prefix == null);
-                        ValidateNotBothStatements("Suffix", source.Suffix == null);
-                        ValidateNotBothStatements("Sqs", source.Sqs == null);
-                        ValidateNotBothStatements("Alexa", source.Alexa == null);
 
                         // TODO (2018-06-27, bjorg): missing expression validation
                         return new ScheduleSource {
@@ -801,13 +889,13 @@ namespace MindTouch.LambdaSharp.Tool {
                     }, null);
                 }
                 if(source.Api != null) {
+                    ValidateNotBothStatements("Api", "S3", source.S3 == null);
+                    ValidateNotBothStatements("Api", "Events", source.Events == null);
+                    ValidateNotBothStatements("Api", "Prefix", source.Prefix == null);
+                    ValidateNotBothStatements("Api", "Suffix", source.Suffix == null);
+                    ValidateNotBothStatements("Api", "Sqs", source.Sqs == null);
+                    ValidateNotBothStatements("Api", "Alexa", source.Alexa == null);
                     return AtLocation("Api", () => {
-                        ValidateNotBothStatements("S3", source.S3 == null);
-                        ValidateNotBothStatements("Events", source.Events == null);
-                        ValidateNotBothStatements("Prefix", source.Prefix == null);
-                        ValidateNotBothStatements("Suffix", source.Suffix == null);
-                        ValidateNotBothStatements("Sqs", source.Sqs == null);
-                        ValidateNotBothStatements("Alexa", source.Alexa == null);
 
                         // extract http method from route
                         var api = source.Api.Trim();
@@ -836,13 +924,13 @@ namespace MindTouch.LambdaSharp.Tool {
                     }, null);
                 }
                 if(source.SlackCommand != null) {
+                    ValidateNotBothStatements("SlackCommand", "S3", source.S3 == null);
+                    ValidateNotBothStatements("SlackCommand", "Events", source.Events == null);
+                    ValidateNotBothStatements("SlackCommand", "Prefix", source.Prefix == null);
+                    ValidateNotBothStatements("SlackCommand", "Suffix", source.Suffix == null);
+                    ValidateNotBothStatements("SlackCommand", "Sqs", source.Sqs == null);
+                    ValidateNotBothStatements("SlackCommand", "Alexa", source.Alexa == null);
                     return AtLocation("SlackCommand", () => {
-                        ValidateNotBothStatements("S3", source.S3 == null);
-                        ValidateNotBothStatements("Events", source.Events == null);
-                        ValidateNotBothStatements("Prefix", source.Prefix == null);
-                        ValidateNotBothStatements("Suffix", source.Suffix == null);
-                        ValidateNotBothStatements("Sqs", source.Sqs == null);
-                        ValidateNotBothStatements("Alexa", source.Alexa == null);
 
                         // parse integration into a valid enum
                         return new ApiGatewaySource {
@@ -853,9 +941,9 @@ namespace MindTouch.LambdaSharp.Tool {
                     }, null);
                 }
                 if(source.S3 != null) {
+                    ValidateNotBothStatements("S3", "Sqs", source.Sqs == null);
+                    ValidateNotBothStatements("S3", "Alexa", source.Alexa == null);
                     return AtLocation("S3", () => {
-                        ValidateNotBothStatements("Sqs", source.Sqs == null);
-                        ValidateNotBothStatements("Alexa", source.Alexa == null);
 
                         // TODO (2018-06-27, bjorg): missing events, prefix, suffix validation
                         var s3 = new S3Source {
@@ -882,11 +970,11 @@ namespace MindTouch.LambdaSharp.Tool {
                     }, null);
                 }
                 if(source.Sqs != null) {
+                    ValidateNotBothStatements("Sqs", "Events", source.Events == null);
+                    ValidateNotBothStatements("Sqs", "Prefix", source.Prefix == null);
+                    ValidateNotBothStatements("Sqs", "Suffix", source.Suffix == null);
+                    ValidateNotBothStatements("Sqs", "Alexa", source.Alexa == null);
                     return AtLocation("Sqs", () => {
-                        ValidateNotBothStatements("Events", source.Events == null);
-                        ValidateNotBothStatements("Prefix", source.Prefix == null);
-                        ValidateNotBothStatements("Suffix", source.Suffix == null);
-                        ValidateNotBothStatements("Alexa", source.Alexa == null);
                         var sqs = new SqsSource {
                             Queue = source.Sqs,
                             BatchSize = source.BatchSize ?? 10
@@ -922,9 +1010,9 @@ namespace MindTouch.LambdaSharp.Tool {
             throw new ModelParserException("invalid function event");
 
             // local functions
-            void ValidateNotBothStatements(string attribute, bool condition) {
+            void ValidateNotBothStatements(string attribute1, string attribute2, bool condition) {
                 if(!condition) {
-                    AddError($"attribute '{attribute}' is not allowe here");
+                    AddError($"attributes '{attribute1}' and '{attribute2}' are not allowed at the same time");
                 }
             }
         }
@@ -963,6 +1051,12 @@ namespace MindTouch.LambdaSharp.Tool {
                 functionParameters.Add(parameter.Name, new LambdaFunctionParameter {
                     Type = LambdaFunctionParameterType.Text,
                     Value = stringParameter.Value
+                });
+                break;
+            case PackageParameter packageParameter:
+                functionParameters.Add(parameter.Name, new LambdaFunctionParameter {
+                    Type = LambdaFunctionParameterType.Stack,
+                    Value = null
                 });
                 break;
             case ReferencedResourceParameter referenceResourceParameter:
