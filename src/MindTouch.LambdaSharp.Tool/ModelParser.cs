@@ -279,10 +279,23 @@ namespace MindTouch.LambdaSharp.Tool {
                         ValidateNotBothStatements("Values", "Parameters", parameter.Parameters == null);
                         ValidateNotBothStatements("Values", "Value", parameter.Value == null);
                         ValidateNotBothStatements("Values", "Package", parameter.Package == null);
-                        ValidateNotBothStatements("Values", "Resource", parameter.Resource == null);
 
                         // list of values
                         AtLocation("Values", () => {
+                            if(parameter.Resource != null) {
+                                AtLocation("Resource", () => {
+                                    for(var i = 1; i <= parameter.Values.Count; ++i) {
+
+                                        // existing resource
+                                        var resource = ConvertResource(parameter.Values[i - 1], parameter.Resource);
+                                        resultList.Add(new ReferencedResourceParameter {
+                                            Name = parameter.Name + i,
+                                            Description = parameter.Description,
+                                            Resource = resource
+                                        });
+                                    }
+                                });
+                            }
 
                             // convert a `StringList` into `String` parameter by concatenating the values, separated by a comma (`,`)
                             var value = string.Join(",", parameter.Values);

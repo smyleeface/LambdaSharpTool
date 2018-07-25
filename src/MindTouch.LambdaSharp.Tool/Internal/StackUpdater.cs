@@ -115,7 +115,7 @@ namespace MindTouch.LambdaSharp.Tool.Internal {
                 var templateS3Key = $"{app.Settings.Deployment}/{app.Name}/cloudformation-{templateSuffix}.json";
                 templateUrl = $"https://s3.amazonaws.com/{app.Settings.DeploymentBucketName}/{templateS3Key}";
                 try {
-                    Console.Write($"=> Uploading CloudFormation template: s3://{app.Settings.DeploymentBucketName}/{templateS3Key} ");
+                    Console.WriteLine($"=> Uploading CloudFormation template: s3://{app.Settings.DeploymentBucketName}/{templateS3Key}");
                     File.WriteAllText(templateFile, template);
                     await transferUtility.UploadAsync(templateFile, app.Settings.DeploymentBucketName, templateS3Key);
                 } finally {

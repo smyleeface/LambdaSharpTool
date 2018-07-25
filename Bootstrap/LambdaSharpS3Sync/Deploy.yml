@@ -6,7 +6,9 @@ Parameters:
 
   - Name: S3BucketPermissions
     Description: LambdaSharpS3Sync requires read-write access to all buckets
-    Value: "*"
+    Values: 
+      - "arn:aws:s3:::{{Deployment}}-*"
+      - "arn:aws:s3:::{{Deployment}}-*/*"
     Resource:
       Type: AWS::S3::Bucket
       Allow: ReadWrite
