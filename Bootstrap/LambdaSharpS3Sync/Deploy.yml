@@ -1,0 +1,27 @@
+Version: "2018-07-04"
+
+Name: LambdaSharpS3Sync
+
+Parameters:
+
+  - Name: S3BucketPermissions
+    Description: LambdaSharpS3Sync requires read-write access to all buckets
+    Value: "*"
+    Resource:
+      Type: AWS::S3::Bucket
+      Allow: ReadWrite
+
+  - Name: S3SyncCustomResourceTopic
+    Description: Custom resource topic for synchronizaing packages with S3 buckets
+    Export: /{{Deployment}}/LambdaSharp/S3SyncCustomResourceTopic
+    Resource:
+      Type: AWS::SNS::Topic
+      Allow: Subscribe
+
+Functions:
+
+  - Name: ResourceHandler
+    Memory: 128
+    Timeout: 300
+    Sources:
+      - Topic: S3SyncCustomResourceTopic
