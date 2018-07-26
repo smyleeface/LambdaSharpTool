@@ -11,8 +11,6 @@ Before you begin, make sure to [setup your λ# environment](../../Bootstrap/).
 An API Gateway instance is automatically created for the app when a function has an `Api` attribute in its `Sources` section. The `Api` attribute value is composed of two parts: the HTTP method and the request path. THe λ# tool creates all required resources and methods using for each function using `AWS_PROXY` as integration.
 
 ```yaml
-Version: "2018-07-04"
-
 Name: ApiSample
 
 Description: A sample app integrating with API Gateway

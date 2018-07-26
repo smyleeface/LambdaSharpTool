@@ -11,8 +11,6 @@ An invocations schedule is created by adding a `Schedule` source to each functio
 A [Slack](https://slack.com) command integration is created by adding the `SlackCommand` source to a function. The λ# tool automatically generates the API Gateway scaffolding including resources, methods, stages, and a deployment. In addition, the Slack command requests are converted into asynchronous invocation to avoid timeout errors for slow functions. Additional details on the Slack Command integration can be [found below](#reference).
 
 ```yaml
-Version: "2018-07-04"
-
 Name: SlackCommandSample
 
 Description: A sample app integrating with Slack

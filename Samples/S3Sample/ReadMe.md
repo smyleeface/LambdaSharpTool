@@ -11,8 +11,6 @@ Creating a function that is invoked by a S3 bucket events requires two steps. Fi
 Optionally, the `S3` attribute can specify specific [S3 events](https://docs.aws.amazon.com/AmazonS3/latest/dev/NotificationHowTo.html#notification-how-to-event-types-and-destinations) to listen to, an S3 key prefix and suffix.
 
 ```yaml
-Version: "2018-07-04"
-
 Name: S3Sample
 
 Description: A sample app integrating with S3 Bucket events

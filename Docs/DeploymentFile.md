@@ -14,7 +14,6 @@ __Table of Contents__
 ## App
 
 ```yaml
-Version: "2018-07-04"
 Name: String
 Description: String
 Variables: 

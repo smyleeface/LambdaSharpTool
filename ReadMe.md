@@ -31,8 +31,6 @@ namespace GettingStarted.SlackCommand {
 The λ# deployment tool uses a YAML file to compile, upload, and deploy the CloudFormation stack all in one step. The YAML describes the app, its parameters, resources, and functions.
 
 ```yaml
-Version: "2018-07-04"
-
 Name: GettingStarted
 
 Description: Intro app that shows a Slack integration

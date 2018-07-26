@@ -13,8 +13,6 @@ Optionally, the `Sqs` attribute can specify the maximum number of messages to re
 Beware the Lambda function timeout must be less than the SQS message visibility timeout. otherwise the deployment will fail.
 
 ```yaml
-Version: "2018-07-04"
-
 Name: SqsSample
 
 Description: A sample app using SQS queues
