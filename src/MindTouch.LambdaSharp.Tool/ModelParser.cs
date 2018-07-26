@@ -55,7 +55,6 @@ namespace MindTouch.LambdaSharp.Tool {
         //--- Fields ---
         private App _app;
         private ImportResolver _importer;
-        private string _workingDirectory;
         private bool _noCompile;
 
         //--- Constructors ---
@@ -68,9 +67,6 @@ namespace MindTouch.LambdaSharp.Tool {
             };
             _noCompile = noCompile;
             _importer = new ImportResolver(Settings.SsmClient);
-
-            // validate file location
-            _workingDirectory = Path.GetDirectoryName(Settings.FileName);
 
             // parse YAML file into app AST
             AppNode appNode;
@@ -422,16 +418,16 @@ namespace MindTouch.LambdaSharp.Tool {
                                     return;
                                 }
 
-                                // verify `Parameters` sections contains a valid S3 bucket reference
-                                var bucketParameterName = parameter.Destination.Bucket;
-                                var bucketParameter = _app.Parameters.FirstOrDefault(param => param.Name == bucketParameterName);
-                                if(bucketParameter == null) {
-                                    AddError($"could not find parameter for S3 bucket: '{bucketParameterName}'");
-                                } else if(!(bucketParameter is AResourceParameter resourceParameter)) {
-                                    AddError($"parameter for S3 bucket is not a resource: '{bucketParameterName}'");
-                                } else if(resourceParameter.Resource.Type != "AWS::S3::Bucket") {
-                                    AddError($"parameter for S3 bucket must be an S3 bucket resource: '{bucketParameterName}'");
-                                }
+                                // TODO (2018-07-25, bjorg): verify `Parameters` sections contains a valid S3 bucket reference
+                                // var bucketParameterName = parameter.Destination.Bucket;
+                                // var bucketParameter = _app.Parameters.FirstOrDefault(param => param.Name == bucketParameterName);
+                                // if(bucketParameter == null) {
+                                //     AddError($"could not find parameter for S3 bucket: '{bucketParameterName}'");
+                                // } else if(!(bucketParameter is AResourceParameter resourceParameter)) {
+                                //     AddError($"parameter for S3 bucket is not a resource: '{bucketParameterName}'");
+                                // } else if(resourceParameter.Resource.Type != "AWS::S3::Bucket") {
+                                //     AddError($"parameter for S3 bucket must be an S3 bucket resource: '{bucketParameterName}'");
+                                // }
                                 
                                 // find all files that need to be part of the package
                                 string folder;
@@ -677,7 +673,7 @@ namespace MindTouch.LambdaSharp.Tool {
                 var runtime = function.Runtime;
                 var zipFinalPackage = AtLocation("Project", () => {
                     var projectName = function.Project ?? $"{_app.Name}.{function.Name}";
-                    var project = Path.Combine(_workingDirectory, projectName, projectName + ".csproj");
+                    var project = Path.Combine(_app.Settings.WorkingDirectory, projectName, projectName + ".csproj");
                     string targetFramework;
 
                     // check if csproj file exists in project folder
@@ -734,8 +730,8 @@ namespace MindTouch.LambdaSharp.Tool {
                     }
 
                     // dotnet tools have to be run from the project folder; otherwise specialized tooling is not picked up from the .csproj file
-                    var projectDirectory = Path.Combine(_workingDirectory, projectName);
-                    foreach(var file in Directory.GetFiles(_workingDirectory, $"{projectName}-*.zip")) {
+                    var projectDirectory = Path.Combine(_app.Settings.WorkingDirectory, projectName);
+                    foreach(var file in Directory.GetFiles(_app.Settings.WorkingDirectory, $"{projectName}-*.zip")) {
                         try {
                             File.Delete(file);
                         } catch { }
@@ -757,7 +753,7 @@ namespace MindTouch.LambdaSharp.Tool {
                     }
 
                     // check if the project zip file was created
-                    var zipOriginalPackage = Path.Combine(_workingDirectory, projectName, projectName + ".zip");
+                    var zipOriginalPackage = Path.Combine(_app.Settings.WorkingDirectory, projectName, projectName + ".zip");
                     if(!File.Exists(zipOriginalPackage)) {
                         AddError($"could not find project package: {zipOriginalPackage}");
                         return null;
@@ -813,7 +809,7 @@ namespace MindTouch.LambdaSharp.Tool {
                                 }
                             }
                             var hash = string.Concat(md5.ComputeHash(bytes.ToArray()).Select(x => x.ToString("X2")));
-                            package = $"{projectName}-{hash}.zip";
+                            package = Path.Combine(_app.Settings.WorkingDirectory, $"{projectName}-{hash}.zip");
                         }
 
                         // compress folder contents
@@ -853,7 +849,7 @@ namespace MindTouch.LambdaSharp.Tool {
                     Description = function.Description,
                     Sources = AtLocation("Sources", () => function.Sources?.Select(source => ConvertFunctionSource(++eventIndex, source)).Where(evt => evt != null).ToList(), null) ?? new List<AFunctionSource>(),
                     Package = zipFinalPackage,
-                    PackageS3Key = $"{_app.Settings.Deployment}/{_app.Name}/{zipFinalPackage}",
+                    PackageS3Key = $"{_app.Settings.Deployment}/{_app.Name}/{Path.GetFileName(zipFinalPackage)}",
                     Handler = handler,
                     Runtime = runtime,
                     Memory = function.Memory,

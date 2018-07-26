@@ -48,7 +48,8 @@ namespace MindTouch.LambdaSharp.Tool {
         public IAmazonS3 S3Client { get; set; }
         public Action<string, Exception> ErrorCallback { get; set; }
         public VerboseLevel VerboseLevel { get; set; }
-        public string FileName { get; set; }
+        public string DeploymentFileName { get; set; }
+        public string WorkingDirectory { get; set; }
 
         public string DeadLetterQueueArn {
             get {

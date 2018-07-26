@@ -188,6 +188,7 @@ namespace MindTouch.LambdaSharp.Tool {
             Console.WriteLine($"LambdaSharp Dead-Letter Queue: {settings.DeadLetterQueueUrl ?? "<NOT SET>"}");
             Console.WriteLine($"LambdaSharp CloudFormation Notification Topic: {settings.DeploymentNotificationTopicArn ?? "<NOT SET>"}");
             Console.WriteLine($"LambdaSharp Rollbar Custom Resource Topic: {settings.RollbarCustomResourceTopicArn ?? "<NOT SET>"}");
+            Console.WriteLine($"LambdaSharp S3 Package Loader Custom Resource Topic: {settings.S3PackageLoaderCustomResourceTopicArn ?? "<NOT SET>"}");
         }
 
         private static async Task Deploy(
@@ -202,13 +203,14 @@ namespace MindTouch.LambdaSharp.Tool {
             }
 
             // read input file
-            settings.FileName = Path.GetFullPath(inputFile);
-            if(!File.Exists(settings.FileName)) {
-                AddError($"could not find '{settings.FileName}'");
+            settings.DeploymentFileName = Path.GetFullPath(inputFile);
+            settings.WorkingDirectory = Path.GetDirectoryName(settings.DeploymentFileName);
+            if(!File.Exists(settings.DeploymentFileName)) {
+                AddError($"could not find '{settings.DeploymentFileName}'");
                 return;
             }
             Console.WriteLine($"Loading '{inputFile}'");
-            var source = await File.ReadAllTextAsync(settings.FileName);
+            var source = await File.ReadAllTextAsync(settings.DeploymentFileName);
 
             // preprocess file
             Console.WriteLine("Pre-processing");
@@ -232,8 +234,7 @@ namespace MindTouch.LambdaSharp.Tool {
             }
 
             // serialize stack to disk
-            var workingDirectory = Path.GetDirectoryName(Path.GetFullPath(inputFile));
-            var outputPath = Path.Combine(workingDirectory, outputFilename);
+            var outputPath = Path.Combine(settings.WorkingDirectory, outputFilename);
             var template = new JsonStackSerializer().Serialize(stack);
             File.WriteAllText(outputPath, template);
             if(dryRun == null) {
