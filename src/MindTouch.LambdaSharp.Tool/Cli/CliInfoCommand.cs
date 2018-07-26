@@ -51,8 +51,8 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
             Console.WriteLine($"LambdaSharp S3 Bucket: {settings.DeploymentBucketName ?? "<NOT SET>"}");
             Console.WriteLine($"LambdaSharp Dead-Letter Queue: {settings.DeadLetterQueueUrl ?? "<NOT SET>"}");
             Console.WriteLine($"LambdaSharp CloudFormation Notification Topic: {settings.DeploymentNotificationTopicArn ?? "<NOT SET>"}");
-            Console.WriteLine($"LambdaSharp Rollbar Custom Resource Topic: {settings.RollbarCustomResourceTopicArn ?? "<NOT SET>"}");
-            Console.WriteLine($"LambdaSharp S3 Package Loader Custom Resource Topic: {settings.S3PackageLoaderCustomResourceTopicArn ?? "<NOT SET>"}");
+            Console.WriteLine($"LambdaSharp Rollbar Project Topic: {settings.RollbarCustomResourceTopicArn ?? "<NOT SET>"}");
+            Console.WriteLine($"LambdaSharp S3 Package Loader Topic: {settings.S3PackageLoaderCustomResourceTopicArn ?? "<NOT SET>"}");
         }
     }
 }
