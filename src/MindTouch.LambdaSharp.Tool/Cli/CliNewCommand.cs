@@ -34,14 +34,17 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                 cmd.Description = "Create new LambdaSharp asset";
 
                 // function sub-command
-                cmd.Command("function", nestedCmd => {
-                    nestedCmd.HelpOption();
-                    var nameOption = nestedCmd.Option("--name|-n <VALUE>", "Name of new project (e.g. App.Function)", CommandOptionType.SingleValue);
-                    var namespaceOption = nestedCmd.Option("--namespace|-ns <VALUE>", "(optional) Root namespace for project (default: same as function name)", CommandOptionType.SingleValue);
-                    var directoryOption = nestedCmd.Option("--working-directory|-wd <VALUE>", "(optional) New function project parent directory (default: current directory)", CommandOptionType.SingleValue);
-                    var frameworkOption = nestedCmd.Option("--framework|-f <VALUE>", "(optional) Target .NET framework (default: 'netcoreapp2.1')", CommandOptionType.SingleValue);
-                    var useProjectReferenceOption = nestedCmd.Option("--use-project-reference", "Reference LambdaSharp libraries using project references (default: use nuget package reference)", CommandOptionType.NoValue);
-                    nestedCmd.OnExecute(() => {
+                cmd.Command("function", subCmd => {
+                    subCmd.HelpOption();
+                    subCmd.Description = "Create new LambdaSharp function";
+
+                    // sub-command options
+                    var nameOption = subCmd.Option("--name|-n <VALUE>", "Name of new project (e.g. App.Function)", CommandOptionType.SingleValue);
+                    var namespaceOption = subCmd.Option("--namespace|-ns <VALUE>", "(optional) Root namespace for project (default: same as function name)", CommandOptionType.SingleValue);
+                    var directoryOption = subCmd.Option("--working-directory|-wd <VALUE>", "(optional) New function project parent directory (default: current directory)", CommandOptionType.SingleValue);
+                    var frameworkOption = subCmd.Option("--framework|-f <VALUE>", "(optional) Target .NET framework (default: 'netcoreapp2.1')", CommandOptionType.SingleValue);
+                    var useProjectReferenceOption = subCmd.Option("--use-project-reference", "Reference LambdaSharp libraries using project references (default: use nuget package reference)", CommandOptionType.NoValue);
+                    subCmd.OnExecute(() => {
                         Console.WriteLine($"{app.FullName} - {cmd.Description}");
                         var lambdasharpDirectory = Environment.GetEnvironmentVariable("LAMBDASHARP");
                         if(lambdasharpDirectory == null) {

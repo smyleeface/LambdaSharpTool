@@ -31,6 +31,8 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
             app.Command("info", cmd => {
                 cmd.HelpOption();
                 cmd.Description = "Show LambdaSharp settings";
+
+                // command options
                 var initSettingsCallback = CreateSettingsInitializer(cmd);
                 cmd.OnExecute(async () => {
                     Console.WriteLine($"{app.FullName} - {cmd.Description}");

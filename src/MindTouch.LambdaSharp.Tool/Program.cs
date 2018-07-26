@@ -46,8 +46,8 @@ namespace MindTouch.LambdaSharp.Tool {
         public static int Main(string[] args) {
             var app = new CommandLineApplication(throwOnUnexpectedArg: false) {
                 Name = "dotnet lash",
-                FullName = $"MindTouch LambdaSharp Tool (v{_version.Major}.{_version.Minor}.{_version.Build}){Environment.NewLine}" +
-                    "Project Home: https://github.com/LambdaSharp/LambdaSharpTool"
+                FullName = $"MindTouch LambdaSharp Tool (v{_version.Major}.{_version.Minor}.{_version.Build})",
+                Description = "Project Home: https://github.com/LambdaSharp/LambdaSharpTool"
             };
             app.HelpOption();
 
@@ -55,6 +55,7 @@ namespace MindTouch.LambdaSharp.Tool {
             new CliInfoCommand().Register(app);
             new CliDeployCommand().Register(app);
             new CliNewCommand().Register(app);
+            new CliListCommand().Register(app);
 
             // new command
             app.OnExecute(() => {

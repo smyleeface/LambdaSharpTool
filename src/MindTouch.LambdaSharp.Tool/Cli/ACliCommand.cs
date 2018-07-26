@@ -39,19 +39,19 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
     public abstract class ACliCommand : CliBase {
 
         //--- Methods ---
-        protected Func<Task<Settings>> CreateSettingsInitializer(CommandLineApplication command) {
-            var deploymentOption = command.Option("--deployment|-D <NAME>", "(optional) Name of deployment (default: LAMBDASHARPDEPLOYMENT environment variable)", CommandOptionType.SingleValue);
-            var awsProfileOption = command.Option("--profile|-P <NAME>", "(optional) Use a specific AWS profile from the AWS credentials file", CommandOptionType.SingleValue);
-            var verboseLevelOption = command.Option("--verbose|-V:<LEVEL>", "(optional) Show verbose output (0=quiet, 1=normal, 2=detailed, 3=exceptions)", CommandOptionType.SingleOrNoValue);
-            var gitShaOption = command.Option("--gitsha <VALUE>", "(optional) GitSha of most recent git commit (default: invoke `git rev-parse HEAD` command)", CommandOptionType.SingleValue);
-            var awsAccountIdOption = command.Option("--aws-account-id <VALUE>", "(test only) Override AWS account Id (default: read from AWS profile)", CommandOptionType.SingleValue);
-            var awsRegionOption = command.Option("--aws-region <NAME>", "(test only) Override AWS region (default: read from AWS profile)", CommandOptionType.SingleValue);
-            var deploymentBucketNameOption = command.Option("--deployment-bucket-name <NAME>", "(test only) S3 Bucket used to deploying assets (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
-            var deploymentDeadletterQueueUrlOption = command.Option("--deployment-deadletter-queue-url <URL>", "(test only) SQS Deadletter queue used by function (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
-            var deploymentNotificationTopicArnOption = command.Option("--deployment-notification-topic-arn <ARN>", "(test only) SNS Topic used by CloudFormation deploymetions (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
-            var boostrapOption = command.Option("--bootstrap", "(boostrap only) Don't read LambdaSharp initialization values", CommandOptionType.NoValue);
-            var deploymentRollbarCustomResourceTopicArnOption = command.Option("--deployment-rollbar-customresource-topic-arn <ARN>", "(test only) SNS Topic for creating Rollbar projects (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
-            var deploymentS3PackageLoaderCustomResourceTopicArnOption = command.Option("--deployment-s3packageloader-customresource-topic-arn <ARN>", "(test only) SNS Topic for synchronizing S3 buckets (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
+        protected Func<Task<Settings>> CreateSettingsInitializer(CommandLineApplication cmd) {
+            var deploymentOption = cmd.Option("--deployment|-D <NAME>", "(optional) Name of deployment (default: LAMBDASHARPDEPLOYMENT environment variable)", CommandOptionType.SingleValue);
+            var awsProfileOption = cmd.Option("--profile|-P <NAME>", "(optional) Use a specific AWS profile from the AWS credentials file", CommandOptionType.SingleValue);
+            var verboseLevelOption = cmd.Option("--verbose|-V:<LEVEL>", "(optional) Show verbose output (0=quiet, 1=normal, 2=detailed, 3=exceptions)", CommandOptionType.SingleOrNoValue);
+            var gitShaOption = cmd.Option("--gitsha <VALUE>", "(optional) GitSha of most recent git commit (default: invoke `git rev-parse HEAD` command)", CommandOptionType.SingleValue);
+            var awsAccountIdOption = cmd.Option("--aws-account-id <VALUE>", "(test only) Override AWS account Id (default: read from AWS profile)", CommandOptionType.SingleValue);
+            var awsRegionOption = cmd.Option("--aws-region <NAME>", "(test only) Override AWS region (default: read from AWS profile)", CommandOptionType.SingleValue);
+            var deploymentBucketNameOption = cmd.Option("--deployment-bucket-name <NAME>", "(test only) S3 Bucket used to deploying assets (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
+            var deploymentDeadletterQueueUrlOption = cmd.Option("--deployment-deadletter-queue-url <URL>", "(test only) SQS Deadletter queue used by function (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
+            var deploymentNotificationTopicArnOption = cmd.Option("--deployment-notification-topic-arn <ARN>", "(test only) SNS Topic used by CloudFormation deploymetions (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
+            var boostrapOption = cmd.Option("--bootstrap", "(boostrap only) Don't read LambdaSharp initialization values", CommandOptionType.NoValue);
+            var deploymentRollbarCustomResourceTopicArnOption = cmd.Option("--deployment-rollbar-customresource-topic-arn <ARN>", "(test only) SNS Topic for creating Rollbar projects (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
+            var deploymentS3PackageLoaderCustomResourceTopicArnOption = cmd.Option("--deployment-s3packageloader-customresource-topic-arn <ARN>", "(test only) SNS Topic for synchronizing S3 buckets (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
             return async () => {
                 var boostrap = boostrapOption.HasValue();
 
