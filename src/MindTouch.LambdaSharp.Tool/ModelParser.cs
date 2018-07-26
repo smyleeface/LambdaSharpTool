@@ -80,11 +80,6 @@ namespace MindTouch.LambdaSharp.Tool {
                 return null;
             }
 
-            // check input file version
-            if(appNode.Version != null) {
-                Console.WriteLine("WARNING: the 'Version` attribute is deprecated");
-            }
-
             // convert app file
             try {
                 return Convert(appNode);
