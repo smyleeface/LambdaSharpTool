@@ -80,6 +80,11 @@ namespace MindTouch.LambdaSharp.Tool {
                 return null;
             }
 
+            // 'Version' attribute is obsolete
+            if(appNode.Version != null) {
+                AddError("the 'Version' attribute is no longer supported");
+            }
+
             // convert app file
             try {
                 return Convert(appNode);

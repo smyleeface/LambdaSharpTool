@@ -26,6 +26,7 @@ namespace MindTouch.LambdaSharp.Tool.Model.AST {
     public class AppNode {
 
         //--- Properties ---
+        public string Version { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public IList<string> Secrets { get; set; }

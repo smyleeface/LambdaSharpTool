@@ -20,6 +20,7 @@
  */
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -76,6 +77,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
             if(settings == null) {
                 return;
             }
+            var stopwatch = Stopwatch.StartNew();
 
             // read input file
             settings.DeploymentFileName = Path.GetFullPath(inputFile);
@@ -122,8 +124,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                     } catch { }
                 }
             }
+            Console.WriteLine($"Done (duration: {stopwatch.Elapsed:c})");
         }
-        
-
     }
 }
