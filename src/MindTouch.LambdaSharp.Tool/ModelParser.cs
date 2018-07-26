@@ -81,10 +81,8 @@ namespace MindTouch.LambdaSharp.Tool {
             }
 
             // check input file version
-            if(appNode.Version == null) {
-                AddError("missing version information");
-            } else if(appNode.Version != "2018-07-04")  {
-                AddError("version mismatch, expected \"2018-07-04\"");
+            if(appNode.Version != null) {
+                Console.WriteLine("WARNING: the 'Version` attribute is deprecated");
             }
 
             // convert app file
