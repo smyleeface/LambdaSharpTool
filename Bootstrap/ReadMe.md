@@ -52,7 +52,7 @@ dotnet lash deploy \
 
 ## 3) λ# Rollbar Integration (optional)
 
-λ# can optionally integrate with [Rollbar](https://rollbar.com). Rollbar is a service for capturing errors and warnings in apps. When the Rollbar integration is used a Rollbar project will be created for the app and all functions within the stack will automatically report any errors that occur to that project.
+λ# can optionally integrate with [Rollbar](https://rollbar.com). Rollbar is a service for capturing errors and warnings in apps. When the Rollbar integration is used, a Rollbar project will be created for the app and all functions within the stack will automatically report any errors that occur to that project.
 
 To prepare the Rollbar integration for deployment, you will need to obtain the `read` and `write` access tokens from your Rollbar account under _Account Access Tokens_:
 

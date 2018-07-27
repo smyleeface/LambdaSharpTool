@@ -27,15 +27,6 @@ Functions:
 ```
 
 <dl>
-<dt><tt>Version</tt></dt>
-<dd>
-The <tt>Version</tt> attribute is used to determine the deployment file format.
-
-<i>Required:</i> Yes
-
-<i>Type:</i> String
-</dd>
-
 <dt><tt>Name</tt></dt>
 <dd>
 The <tt>Name</tt> attribute is used as prefix for CloudFormation resources, as well as to access to the parameter store.
