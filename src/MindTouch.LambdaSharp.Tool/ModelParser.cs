@@ -476,7 +476,7 @@ namespace MindTouch.LambdaSharp.Tool {
                                     Description = parameter.Description,
                                     Package = package,
                                     Bucket = parameter.Destination.Bucket,
-                                    PackageS3Key = $"{_app.Settings.Deployment}/{_app.Name}/{package}",
+                                    PackageS3Key = $"{_app.Name}/{package}",
                                     Prefix = parameter.Destination.Prefix
                                 };
                             });
@@ -847,7 +847,7 @@ namespace MindTouch.LambdaSharp.Tool {
                     Description = function.Description,
                     Sources = AtLocation("Sources", () => function.Sources?.Select(source => ConvertFunctionSource(++eventIndex, source)).Where(evt => evt != null).ToList(), null) ?? new List<AFunctionSource>(),
                     Package = zipFinalPackage,
-                    PackageS3Key = $"{_app.Settings.Deployment}/{_app.Name}/{Path.GetFileName(zipFinalPackage)}",
+                    PackageS3Key = $"{_app.Name}/{Path.GetFileName(zipFinalPackage)}",
                     Handler = handler,
                     Runtime = runtime,
                     Memory = function.Memory,

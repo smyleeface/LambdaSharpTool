@@ -112,7 +112,7 @@ namespace MindTouch.LambdaSharp.Tool.Internal {
             if(app.Settings.DeploymentBucketName != null) {
                 var templateFile = Path.GetTempFileName();
                 var templateSuffix = app.Settings.GitSha ?? ("UTC" + DateTime.UtcNow.ToString("yyyyMMddhhmmss"));
-                var templateS3Key = $"{app.Settings.Deployment}/{app.Name}/cloudformation-{templateSuffix}.json";
+                var templateS3Key = $"{app.Name}/cloudformation-{templateSuffix}.json";
                 templateUrl = $"https://s3.amazonaws.com/{app.Settings.DeploymentBucketName}/{templateS3Key}";
                 try {
                     Console.WriteLine($"=> Uploading CloudFormation template: s3://{app.Settings.DeploymentBucketName}/{templateS3Key}");
