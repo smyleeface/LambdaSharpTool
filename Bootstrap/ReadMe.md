@@ -6,15 +6,31 @@ Setting up the λ# environment is required for each deployment name (e.g. `Test`
 
 ## 1) Install λ# Tool
 
-The λ# tool is distributed as a Nuget package. To install it, open the terminal, and run the following `dotnet` tool installation command:
+The λ# tool is distributed as [GitHub repository](https://github.com/LambdaSharp/LambdaSharpTool). Switch to your preferred folder for Git projects and create a clone of the λ# tool.
 
 ```bash
-dotnet tool install -g MindTouch.LambdaSharp.Tool
+git clone https://github.com/LambdaSharp/LambdaSharpTool.git
 ```
 
-Once installed, validate that the command works by running:
+Define the `LAMBDASHARP` environment variable to point to the folder of the `LambdaSharpTool` clone. Furthermore, define `lash` as alias to invoke the λ# tool. The following script assumes the λ# tool was cloned into the `/Repos/LambdaSharpTool` directory.
+
+Using PowerShell:
+```powershell
+New-Variable -Name LAMBDASHARP -Value \Repos\LambdaSharpTool
+function lash { 
+  dotnet run -p $LAMBDASHARP\src\MindTouch.LambdaSharp.Tool\MindTouch.LambdaSharp.Tool.csproj -- 
+}
+```
+
+Using Bash:
 ```bash
-dotnet lash
+export LAMBDASHARP=/Repos/LambdaSharpTool
+alias lash="dotnet run -p $LAMBDASHARP/src/MindTouch.LambdaSharp.Tool/MindTouch.LambdaSharp.Tool.csproj --"
+```
+
+Once setup, validate that the command works by running:
+```bash
+lash
 ```
 
 The following text should appear (or similar):
@@ -22,7 +38,7 @@ The following text should appear (or similar):
 MindTouch LambdaSharp Tool (v0.2.0)
 Project Home: https://github.com/LambdaSharp/LambdaSharpTool
 
-Usage: dotnet lash [options] [command]
+Usage: MindTouch.LambdaSharp.Tool [options] [command]
 
 Options:
   -?|-h|--help  Show help information
@@ -32,7 +48,7 @@ Commands:
   info          Show LambdaSharp settings
   new           Create new LambdaSharp asset
 
-Run 'dotnet lash [command] --help' for more information about a command.
+Run 'MindTouch.LambdaSharp.Tool [command] --help' for more information about a command.
 ```
 
 ## 2) λ# Bootstrap
@@ -44,10 +60,10 @@ The λ# environment requires an AWS account to be setup for each deployment name
 For the purpose of this tutorial, we use `MyDeployment` as the new deployment name. The next step MUST to be repeated for each deployment name.
 
 ```bash
-dotnet lash deploy \
+lash deploy \
     --bootstrap \
     --deployment MyDeployment \
-    --input $LAMBDASHARP/Bootstrap/LambdaSharp/Deploy.yml
+    $LAMBDASHARP/Bootstrap/LambdaSharp/Deploy.yml
 ```
 
 ## 3) λ# Rollbar Integration (optional)
@@ -68,10 +84,9 @@ Finally, under `Secrets`, list the alias of the encryption key that was used (e.
 Now you are ready to deploy your Rollbar integration. The following command deploys the custom resource handler for Rollbar. Once deployed, all subsequent λ# deployments will be assigned a dedicated Rollbar project for monitoring.
 
 ```bash
-dotnet lash deploy \
-    --bootstrap \
+lash deploy \
     --deployment MyDeployment \
-    --input $LAMBDASHARP/Bootstrap/LambdaSharpRollbar/Deploy.yml
+    $LAMBDASHARP/Bootstrap/LambdaSharpRollbar/Deploy.yml
 ```
 
 ## 4) λ# S3 Package Loader (recommended)
@@ -79,45 +94,7 @@ dotnet lash deploy \
 λ# includes an AWS Custom Resource handler to deploy packages to S3 Buckets as part of the deployment process. The following command deploys the custom resource handler. Once deployed, all subsequent λ# deployments can create and deploy packages to S3 buckets.
 
 ```bash
-dotnet lash deploy \
+lash deploy \
     --deployment MyDeployment \
-    --input $LAMBDASHARP/Bootstrap/LambdaSharpS3PackageLoader/Deploy.yml
-```
-
-# Appendix: λ# Developer Setup
-
-For λ# developers, it is more convenient to clone the git repository. Switch to your preferred folder for Git projects and create a clone of the λ# tool.
-
-```bash
-git clone https://github.com/LambdaSharp/LambdaSharpTool.git
-```
-
-Define the `LAMBDASHARP` environment variable to point to the folder of the `LambdaSharpTool` clone. Furthermore, define `lash` as alias to invoke the λ# tool. The following script assumes the λ# tool was cloned into the `/Repos/LambdaSharpTool` directory.
-
-```bash
-export LAMBDASHARP=/Repos/LambdaSharpTool
-alias lash="dotnet run -p $LAMBDASHARP/src/MindTouch.LambdaSharp.Tool/MindTouch.LambdaSharp.Tool.csproj --"
-```
-
-Once sertup, validate that the command works by running:
-```bash
-lash
-```
-
-The following text should appear (or similar):
-```
-MindTouch LambdaSharp Tool (v0.2.0)
-Project Home: https://github.com/LambdaSharp/LambdaSharpTool
-
-Usage: dotnet lash [options] [command]
-
-Options:
-  -?|-h|--help  Show help information
-
-Commands:
-  deploy        Deploy LambdaSharp app
-  info          Show LambdaSharp settings
-  new           Create new LambdaSharp asset
-
-Run 'dotnet lash [command] --help' for more information about a command.
+    $LAMBDASHARP/Bootstrap/LambdaSharpS3PackageLoader/Deploy.yml
 ```
