@@ -14,12 +14,12 @@ Commands:
 
 The `deploy` command parses the input file, compiles all included function projects, and deploys the changes to the AWS account.
 
-The default filename for the deployment file is `Deploy.yml` in the current working directory. If the file has a different name or is not in the current directory, it must be specified on the command line using the `--input` option.
+The default filename for the deployment file is `Deploy.yml` in the current working directory. If the file has a different name or is not in the current directory, it must be specified as an arugment on the command line.
 
 CloudFormation stacks created by the λ# tool have termination protection enabled. In addition, subsequent updates cannot delete or replace data resources unless the `--allow-data-loss` option is passed in. This behavior is to reduce the risk of accidental data loss when CloudFormation resources are being accidentally replaced.
 
 ```
-> dotnet lash deploy --deployment MyDeployment
+> lash deploy --deployment MyDeployment
 MindTouch LambdaSharp Tool - Deploy LambdaSharp app
 Retrieving LambdaSharp settings for `MyDeployment'
 Loading 'Deploy.yml'
@@ -37,11 +37,17 @@ Deploying stack: MyDeployment-Sample
 => Stack creation finished
 ```
 
+### Argument
+
+The name of the YAML app deployment file can be optionally specified as argument. When omitted, the tool will look for a file called `Deploy.yml`.
+
+```
+lash deploy Deploy.yml
+```
+
 ### Options
 
 <dl>
-<dt><tt>--input &lt;FILE></tt></dt>
-<dd>(optional) YAML app deployment file (default: Deploy.yml)</dd>
 <dt><tt>--dryrun[:&lt;LEVEL&gt;]</tt></dt>
 <dd>(optional) Generate output assets without deploying (0=everything, 1=cloudformation)</dd>
 <dt><tt>--output &lt;FILE&gt;</tt></dt>
@@ -88,7 +94,7 @@ The following settings are read from AWS Systems Manager Parameter Store:
 
 
 ```
-> dotnet lash info --deployment MyDeployment
+> lash info --deployment MyDeployment
 MindTouch LambdaSharp Tool - Show LambdaSharp settings
 Retrieving LambdaSharp settings for `MyDeployment'
 Deployment: MyDeployment
@@ -131,7 +137,7 @@ LambdaSharp Rollbar Custom Resource Topic: arn:aws:sns:us-east-1:123456789012:La
 The `new function` command creates a new C# project in the current folder with the required dependencies, as well as a `Function.cs` file with a skeleton AWS Lambda implementation.
 
 ```
-> dotnet lash new function --name MyApp.MyFunction --namespace MyCompany.MyApp.MyFunction
+> lash new function --name MyApp.MyFunction --namespace MyCompany.MyApp.MyFunction
 MindTouch LambdaSharp Tool - Create new LambdaSharp asset
 Created project file: MyApp.MyFunction/MyApp.MyFunction.csproj
 Created function file: MyApp.MyFunction/Function.cs

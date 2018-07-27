@@ -45,7 +45,7 @@ namespace MindTouch.LambdaSharp.Tool {
         //--- Class Methods ---
         public static int Main(string[] args) {
             var app = new CommandLineApplication(throwOnUnexpectedArg: false) {
-                Name = "dotnet lash",
+                Name = "MindTouch.LambdaSharp.Tool",
                 FullName = $"MindTouch LambdaSharp Tool (v{_version.Major}.{_version.Minor}.{_version.Build})",
                 Description = "Project Home: https://github.com/LambdaSharp/LambdaSharpTool"
             };

@@ -38,9 +38,11 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                 cmd.HelpOption();
                 cmd.Description = "Deploy LambdaSharp app";
                 var inputFileOption = cmd.Option("--input <FILE>", "(optional) YAML app deployment file (default: Deploy.yml)", CommandOptionType.SingleValue);
+                inputFileOption.ShowInHelpText = false;
                 var dryRunOption = cmd.Option("--dryrun:<LEVEL>", "(optional) Generate output assets without deploying (0=everything, 1=cloudformation)", CommandOptionType.SingleOrNoValue);
                 var outputFilename = cmd.Option("--output <FILE>", "(optional) Name of generated CloudFormation template file (default: cloudformation.json)", CommandOptionType.SingleValue);
                 var allowDataLossOption = cmd.Option("--allow-data-loss", "(optional) Allow CloudFormation resource update operations that could lead to data loss", CommandOptionType.NoValue);
+                var cmdArgument = cmd.Argument("<FILE>", "(optional) YAML app deployment file (default: Deploy.yml)", multipleValues: false);
                 var initSettingsCallback = CreateSettingsInitializer(cmd);
                 cmd.OnExecute(async () => {
                     Console.WriteLine($"{app.FullName} - {cmd.Description}");
@@ -56,9 +58,14 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                         }
                         dryRun = value;
                     }
+                    if(cmdArgument.Values.Any() && inputFileOption.HasValue()) {
+                        AddError("cannot specify --input and an argument at the same time");
+                        return;
+                    }
+                    var inputFile = cmdArgument.Values.FirstOrDefault() ?? inputFileOption.Value() ?? "Deploy.yml";
                     await Deploy(
                         settings,
-                        inputFileOption.Value() ?? "Deploy.yml",
+                        inputFile,
                         dryRun,
                         outputFilename.Value() ?? "cloudformation.json",
                         allowDataLossOption.HasValue()
@@ -86,18 +93,16 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                 AddError($"could not find '{settings.DeploymentFileName}'");
                 return;
             }
-            Console.WriteLine($"Loading '{inputFile}'");
+            Console.WriteLine($"Processing: {Path.Combine(settings.WorkingDirectory, inputFile)}");
             var source = await File.ReadAllTextAsync(settings.DeploymentFileName);
 
             // preprocess file
-            Console.WriteLine("Pre-processing");
             var parser = new ModelPreprocessor(settings).Preprocess(source);
             if(_errors.Any()) {
                 return;
             }
 
             // parse yaml app file
-            Console.WriteLine("Analyzing");
             var app = new ModelParser(settings).Parse(parser, dryRun == DryRunLevel.CloudFormation);
             if(_errors.Any()) {
                 return;
