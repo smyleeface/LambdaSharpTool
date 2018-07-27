@@ -1,6 +1,6 @@
 Name: LambdaSharpRollbar
 
-Description: LambdaSharp's custom resource handler for Rollbar resources
+Description: LambdaSharp resource handler for Rollbar projects
 
 # Secrets:
 #   - ...
