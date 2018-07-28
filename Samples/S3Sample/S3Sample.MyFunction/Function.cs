@@ -36,7 +36,7 @@ namespace S3Sample.MyFunction {
         public override Task InitializeAsync(LambdaConfig config)
             => Task.CompletedTask;
 
-        public override Task<string> ProcessMessageAsync(S3Event evt, ILambdaContext context) {
+        public override async Task<string> ProcessMessageAsync(S3Event evt, ILambdaContext context) {
             LogInfo($"# S3 Records = {evt.Records.Count}");
             for(var i = 0; i < evt.Records.Count; ++i) {
                 var record = evt.Records[i];
@@ -51,7 +51,7 @@ namespace S3Sample.MyFunction {
                 LogInfo($"S3.Object.VersionId = {record.S3.Object.VersionId}");
                 LogInfo($"UserIdentity.PrincipalId = {record.UserIdentity.PrincipalId}");
             }
-            return Task.FromResult("Ok");
+            return "Ok";
         }
     }
 }

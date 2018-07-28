@@ -36,7 +36,7 @@ namespace SqsSample.MyFunction {
         public override Task InitializeAsync(LambdaConfig config)
             => Task.CompletedTask;
 
-        public override Task<string> ProcessMessageAsync(SQSEvent evt, ILambdaContext context) {
+        public override async Task<string> ProcessMessageAsync(SQSEvent evt, ILambdaContext context) {
             LogInfo($"# SQS Records = {evt.Records.Count}");
             for(var i = 0; i < evt.Records.Count; ++i) {
                 var record = evt.Records[i];
@@ -54,7 +54,7 @@ namespace SqsSample.MyFunction {
                     LogInfo($"MessageAttributes.{attribute.Key} = {attribute.Value}");
                 }
             }
-            return Task.FromResult("Ok");
+            return "Ok";
         }
     }
 }

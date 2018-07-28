@@ -35,7 +35,7 @@ namespace ScheduleSample.MyFunction {
         public override Task InitializeAsync(LambdaConfig config)
             => Task.CompletedTask;
 
-        public override Task<string> ProcessMessageAsync(LambdaScheduleEvent schedule, ILambdaContext context) {
+        public override async Task<string> ProcessMessageAsync(LambdaScheduleEvent schedule, ILambdaContext context) {
             LogInfo($"Version = {schedule.Version}");
             LogInfo($"Id = {schedule.Id}");
             LogInfo($"Source = {schedule.Source}");
@@ -43,7 +43,7 @@ namespace ScheduleSample.MyFunction {
             LogInfo($"Time = {schedule.Time}");
             LogInfo($"Region = {schedule.Region}");
             LogInfo($"Name = {schedule.Name}");
-            return Task.FromResult("Ok");
+            return "Ok";
         }
     }
 }

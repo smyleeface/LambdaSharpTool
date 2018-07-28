@@ -35,7 +35,7 @@ namespace MindTouch.LambdaSharpTest.Function {
         public override Task InitializeAsync(LambdaConfig config)
             => Task.CompletedTask;
 
-        public override Task<object> ProcessMessageStreamAsync(Stream stream, ILambdaContext context)
-            => Task.FromResult((object)"Ok");
+        public override async Task<object> ProcessMessageStreamAsync(Stream stream, ILambdaContext context)
+            => "Ok";
     }
 }
