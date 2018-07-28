@@ -106,7 +106,7 @@ Parameters:
     Value: Hello {{Who}}!
 ```
 
-Variables can also be used in other variables to create compound values. The order of definitions for variables is not important. However, beware to avoid cyclic dependencies, otherwise the λ# tool will be unable to resolve the value.
+Variables can also be used in other variables to create compound values. The order of definitions for variables is not important. However, beware to avoid cyclic dependencies, otherwise the λ# tool will be unable to resolve the variable value.
 
 ```yaml
 Variables:
@@ -629,5 +629,24 @@ The <tt>BatchSize</tt> attribute specifies the maximum number of messages to fet
 <i>Required</i>: No
 
 <i>Type</i>: Int
+</dd>
+</dl>
+
+#### Alexa Source
+
+See [Alexa sample](../Samples/AlexaSample/) for an example of how to use an Alexa skill as source.
+
+```yaml
+Alexa: String
+```
+
+<dl>
+<dt><tt>Alexa</tt></dt>
+<dd>
+The <tt>Alexa</tt> attribute can either specify an Alexa Skill ID or the wildcard value (`"*'`) to allow any Alexa skill to invoke it.
+
+<i>Required</i>: Yes
+
+<i>Type</i>: String
 </dd>
 </dl>
