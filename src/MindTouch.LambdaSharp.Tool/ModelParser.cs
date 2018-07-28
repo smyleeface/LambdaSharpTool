@@ -1017,8 +1017,11 @@ namespace MindTouch.LambdaSharp.Tool {
                 }
                 if(source.Alexa != null) {
                     return AtLocation("Alexa", () => {
+                        var alexaSkillId = (string.IsNullOrWhiteSpace(source.Alexa) || source.Alexa == "*") 
+                            ? null 
+                            : source.Alexa;
                         return new AlexaSource {
-                            EventSourceToken = string.IsNullOrWhiteSpace(source.Alexa) ? null : source.Alexa
+                            EventSourceToken = alexaSkillId
                         };
                     }, null);
                 }
