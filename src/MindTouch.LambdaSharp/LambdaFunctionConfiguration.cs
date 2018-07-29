@@ -21,6 +21,7 @@
 
 using System;
 using Amazon.KeyManagementService;
+using Amazon.SimpleNotificationService;
 using Amazon.SQS;
 using MindTouch.LambdaSharp.ConfigSource;
 
@@ -36,8 +37,9 @@ namespace MindTouch.LambdaSharp {
         };
 
         //--- Properties ---
-        public IAmazonSQS SqsClient { get; set; }
         public IAmazonKeyManagementService KmsClient { get; set; }
+        public IAmazonSimpleNotificationService SnsClient { get; set; }
+        public IAmazonSQS SqsClient { get; set; }
         public ILambdaConfigSource EnvironmentSource { get; set; }
         public Func<DateTime> UtcNow { get; set; }
     }
