@@ -55,7 +55,7 @@ namespace MindTouch.LambdaSharp {
         private readonly ILambdaConfigSource _envSource;
         private IRollbarClient _rollbarClient;
         private string _deadLetterQueueUrl;
-        private string _rollbarErrorTopic;
+        private string _errorTopic;
         private bool _initialized;
         private LambdaConfig _appConfig;
         private string _deployment;
@@ -131,13 +131,14 @@ namespace MindTouch.LambdaSharp {
             _appName = envSource.Read("APPNAME");
             _stackName = envSource.Read("STACKNAME");
             _deadLetterQueueUrl = envSource.Read("DEADLETTERQUEUE");
-            _rollbarErrorTopic = envSource.Read("ROLLBARERRORTOPIC");
+            _errorTopic = envSource.Read("ERRORTOPIC");
             var framework = envSource.Read("LAMBDARUNTIME");
             LogInfo($"DEPLOYMENT = {_deployment}");
             LogInfo($"APPNAME = {_appName}");
             LogInfo($"STACKNAME = {_stackName}");
             LogInfo($"DEADLETTERQUEUE = {_deadLetterQueueUrl ?? "NONE"}");
-            LogInfo($"ROLLBARERRORTOPIC = {_rollbarErrorTopic ?? "NONE"}");
+            LogInfo($"ERRORTOPIC = {_errorTopic ?? "NONE"}");
+            LogInfo($"ROLLBARERRORTOPIC = {_errorTopic ?? "NONE"}");
 
             // read optional git-sha file
             var gitsha = File.Exists("gitsha.txt") ? File.ReadAllText("gitsha.txt") : null;
@@ -253,11 +254,11 @@ namespace MindTouch.LambdaSharp {
                     } catch(Exception e) {
                         Log(LambdaLogLevel.ERROR, $"rollbar client exception", e.ToString());
                     }
-                } else if(_rollbarErrorTopic != null) {
+                } else if(_errorTopic != null) {
 
                     // send exception to error-topic
                     _snsClient.PublishAsync(new PublishRequest {
-                        TopicArn = _rollbarErrorTopic,
+                        TopicArn = _errorTopic,
                         Message = _rollbarClient.CreatePayload(MAX_SNS_SIZE, level.ToString(), exception, format, args),
                         MessageAttributes = new Dictionary<string, MessageAttributeValue> {
                             ["Deployment"] = new MessageAttributeValue {
