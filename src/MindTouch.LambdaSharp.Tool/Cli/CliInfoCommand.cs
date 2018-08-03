@@ -46,7 +46,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
         }
 
         private void Info(Settings settings) {
-            Console.WriteLine($"Deployment: {settings.Deployment ?? "<NOT SET>"}");
+            Console.WriteLine($"Tier: {settings.Tier ?? "<NOT SET>"}");
             Console.WriteLine($"Git SHA: {settings.GitSha ?? "<NOT SET>"}");
             Console.WriteLine($"AWS Region: {settings.AwsRegion ?? "<NOT SET>"}");
             Console.WriteLine($"AWS Account Id: {settings.AwsAccountId ?? "<NOT SET>"}");

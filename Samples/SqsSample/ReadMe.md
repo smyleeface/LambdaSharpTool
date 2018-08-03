@@ -4,18 +4,18 @@
 
 Before you begin, make sure to [setup your λ# environment](../../Bootstrap/).
 
-## Deployment
+## Deployment File
 
 Creating a function that is invoked by an SQS queue requires two steps. First, the SQS topic must either be created or referenced in the `Parameters` section. Second, the function must reference the parameter name in its `Sources` section using the `Sqs` attribute.
 
 Optionally, the `Sqs` attribute can specify the maximum number of messages to read from SQS.
 
-Beware the Lambda function timeout must be less than the SQS message visibility timeout. otherwise the deployment will fail.
+Beware the Lambda function timeout must be less than the SQS message visibility timeout, otherwise the deployment will fail.
 
 ```yaml
 Name: SqsSample
 
-Description: A sample app using SQS queues
+Description: A sample deployment using SQS queues
 
 Parameters:
 

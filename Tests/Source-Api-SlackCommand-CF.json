@@ -6,8 +6,8 @@
       "Type": "Custom::LambdaSharpRollbarProject",
       "Properties": {
         "ServiceToken": "arn:aws:sns:us-east-1:123456789012:LambdaSharpRollbar-RollbarCustomResourceTopic",
-        "Project": "Test",
-        "Deployment": "test"
+        "Project": "TestDeployment",
+        "Tier": "TestTier"
       }
     },
     "AppRole": {
@@ -52,7 +52,7 @@
                 }
               ]
             },
-            "PolicyName": "test-Test-policy"
+            "PolicyName": "TestTier-TestDeployment-policy"
           }
         ]
       }
@@ -62,16 +62,16 @@
       "Properties": {
         "Code": {
           "S3Bucket": "lambdsharp-bucket-name",
-          "S3Key": "test/Test/Test.Function-NOCOMPILE.zip"
+          "S3Key": "TestDeployment/TestDeployment.Function-NOCOMPILE.zip"
         },
         "DeadLetterConfig": {
           "TargetArn": "arn:aws:sqs:us-east-1:123456789012:LambdaSharp-DeadLetterQueue"
         },
         "Environment": {
           "Variables": {
-            "DEPLOYMENT": "test",
-            "APPNAME": "Test",
-            "STACKNAME": "test-Test",
+            "TIER": "TestTier",
+            "APPNAME": "TestDeployment",
+            "STACKNAME": "TestTier-TestDeployment",
             "DEADLETTERQUEUE": "https://sqs.us-east-1.amazonaws.com/123456789012/LambdaSharp-DeadLetterQueue",
             "LAMBDARUNTIME": "dotnetcore2.1",
             "STACK_ROLLBARTOKEN": {
@@ -82,8 +82,8 @@
             }
           }
         },
-        "FunctionName": "test-Test-Function",
-        "Handler": "Test.Function::MindTouch.LambdaSharpTest.Function.Function::FunctionHandlerAsync",
+        "FunctionName": "TestTier-TestDeployment-Function",
+        "Handler": "TestDeployment.Function::MindTouch.LambdaSharpTestDeployment.Function.Function::FunctionHandlerAsync",
         "MemorySize": "128",
         "Role": {
           "Fn::GetAtt": [
@@ -94,26 +94,26 @@
         "Runtime": "dotnetcore2.1",
         "Tags": [
           {
-            "Key": "lambdasharp:deployment",
-            "Value": "test"
+            "Key": "lambdasharp:tier",
+            "Value": "TestTier"
           },
           {
-            "Key": "lambdasharp:app",
-            "Value": "Test"
+            "Key": "lambdasharp:deployment",
+            "Value": "TestDeployment"
           }
         ],
         "Timeout": "30"
       }
     },
-    "TestRestApi": {
+    "TestDeploymentRestApi": {
       "Type": "AWS::ApiGateway::RestApi",
       "Properties": {
-        "Description": "API for Test: LambdaSharp CloudFormation Test",
+        "Description": "API for TestDeployment: LambdaSharp CloudFormation Test",
         "FailOnWarnings": true,
-        "Name": "Test API (test)"
+        "Name": "TestDeployment API (TestTier)"
       }
     },
-    "TestRestApiRole": {
+    "TestDeploymentRestApiRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
         "AssumeRolePolicyDocument": {
@@ -146,38 +146,38 @@
                 }
               ]
             },
-            "PolicyName": "TestRestApiRolePolicy"
+            "PolicyName": "TestDeploymentRestApiRolePolicy"
           }
         ]
       }
     },
-    "TestRestApiAccount": {
+    "TestDeploymentRestApiAccount": {
       "Type": "AWS::ApiGateway::Account",
       "Properties": {
         "CloudWatchRoleArn": {
           "Fn::GetAtt": [
-            "TestRestApiRole",
+            "TestDeploymentRestApiRole",
             "Arn"
           ]
         }
       }
     },
-    "TestRestApiSlackResource": {
+    "TestDeploymentRestApiSlackResource": {
       "Type": "AWS::ApiGateway::Resource",
       "Properties": {
         "ParentId": {
           "Fn::GetAtt": [
-            "TestRestApi",
+            "TestDeploymentRestApi",
             "RootResourceId"
           ]
         },
         "PathPart": "slack",
         "RestApiId": {
-          "Ref": "TestRestApi"
+          "Ref": "TestDeploymentRestApi"
         }
       }
     },
-    "TestRestApiSlackPOST": {
+    "TestDeploymentRestApiSlackPOST": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
         "AuthorizationType": "NONE",
@@ -222,14 +222,14 @@
           }
         ],
         "ResourceId": {
-          "Ref": "TestRestApiSlackResource"
+          "Ref": "TestDeploymentRestApiSlackResource"
         },
         "RestApiId": {
-          "Ref": "TestRestApi"
+          "Ref": "TestDeploymentRestApi"
         }
       }
     },
-    "FunctionTestRestApiSlackPOSTPermission": {
+    "FunctionTestDeploymentRestApiSlackPOSTPermission": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "Action": "lambda:InvokeFunction",
@@ -245,30 +245,30 @@
             "arn:aws:execute-api:us-east-1:123456789012:${RestApi}/LATEST/POST/slack",
             {
               "RestApi": {
-                "Ref": "TestRestApi"
+                "Ref": "TestDeploymentRestApi"
               }
             }
           ]
         }
       }
     },
-    "TestRestApiDeployment513F765C98FF456F343280B8094C0E04": {
+    "TestDeploymentRestApiDeployment420C9F5209D9E57BE88BD52EADF3413D": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
-        "Description": "Test API (test) [513F765C98FF456F343280B8094C0E04]",
+        "Description": "TestDeployment API (TestTier) [420C9F5209D9E57BE88BD52EADF3413D]",
         "RestApiId": {
-          "Ref": "TestRestApi"
+          "Ref": "TestDeploymentRestApi"
         }
       },
       "DependsOn": [
-        "TestRestApiSlackPOST"
+        "TestDeploymentRestApiSlackPOST"
       ]
     },
-    "TestRestApiStage": {
+    "TestDeploymentRestApiStage": {
       "Type": "AWS::ApiGateway::Stage",
       "Properties": {
         "DeploymentId": {
-          "Ref": "TestRestApiDeployment513F765C98FF456F343280B8094C0E04"
+          "Ref": "TestDeploymentRestApiDeployment420C9F5209D9E57BE88BD52EADF3413D"
         },
         "MethodSettings": [
           {
@@ -279,12 +279,12 @@
           }
         ],
         "RestApiId": {
-          "Ref": "TestRestApi"
+          "Ref": "TestDeploymentRestApi"
         },
         "StageName": "LATEST"
       },
       "DependsOn": [
-        "TestRestApiAccount"
+        "TestDeploymentRestApiAccount"
       ]
     }
   },
@@ -296,7 +296,7 @@
           [
             "https://",
             {
-              "Ref": "TestRestApi"
+              "Ref": "TestDeploymentRestApi"
             },
             ".execute-api.",
             {
@@ -310,7 +310,7 @@
           ]
         ]
       },
-      "Description": "API for Test: LambdaSharp CloudFormation Test"
+      "Description": "API for TestDeployment: LambdaSharp CloudFormation Test"
     }
   }
 }

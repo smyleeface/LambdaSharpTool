@@ -58,8 +58,8 @@ namespace MindTouch.LambdaSharp {
         private string _errorTopic;
         private bool _initialized;
         private LambdaConfig _appConfig;
+        private string _tier;
         private string _deployment;
-        private string _appName;
         private string _stackName;
 
         //--- Constructors ---
@@ -127,14 +127,14 @@ namespace MindTouch.LambdaSharp {
         protected virtual async Task InitializeAsync(ILambdaConfigSource envSource, ILambdaContext context) {
 
             // read bootstrap configuration from environment
+            _tier = envSource.Read("TIER");
             _deployment = envSource.Read("DEPLOYMENT");
-            _appName = envSource.Read("APPNAME");
             _stackName = envSource.Read("STACKNAME");
             _deadLetterQueueUrl = envSource.Read("DEADLETTERQUEUE");
             _errorTopic = envSource.Read("ERRORTOPIC");
             var framework = envSource.Read("LAMBDARUNTIME");
+            LogInfo($"TIER = {_tier}");
             LogInfo($"DEPLOYMENT = {_deployment}");
-            LogInfo($"APPNAME = {_appName}");
             LogInfo($"STACKNAME = {_stackName}");
             LogInfo($"DEADLETTERQUEUE = {_deadLetterQueueUrl ?? "NONE"}");
             LogInfo($"ERRORTOPIC = {_errorTopic ?? "NONE"}");
@@ -144,10 +144,10 @@ namespace MindTouch.LambdaSharp {
             var gitsha = File.Exists("gitsha.txt") ? File.ReadAllText("gitsha.txt") : null;
             LogInfo($"GITSHA = {gitsha ?? "NONE"}");
 
-            // read app configuration values from parameters file
+            // read deployment parameter values from parameters file
             var parameters = await ParseParameters("/", File.ReadAllText("parameters.json"));
 
-            // use app config where environment variables take precedence over those found in the parameter store
+            // create config where environment variables take precedence over those found in the parameter file
             _appConfig = new LambdaConfig(new LambdaMultiSource(new[] {
                 envSource,
                 new LambdaDictionarySource("", parameters)
@@ -161,7 +161,7 @@ namespace MindTouch.LambdaSharp {
                 _rollbarClient = RollbarClient.Create(new RollbarConfiguration(
                     rollbarAccessToken,
                     proxy,
-                    _deployment,
+                    _tier,
                     platform,
                     framework,
                     gitsha
@@ -261,11 +261,11 @@ namespace MindTouch.LambdaSharp {
                         TopicArn = _errorTopic,
                         Message = _rollbarClient.CreatePayload(MAX_SNS_SIZE, level.ToString(), exception, format, args),
                         MessageAttributes = new Dictionary<string, MessageAttributeValue> {
+                            ["Tier"] = new MessageAttributeValue {
+                                StringValue = _tier
+                            },
                             ["Deployment"] = new MessageAttributeValue {
                                 StringValue = _deployment
-                            },
-                            ["AppName"] = new MessageAttributeValue {
-                                StringValue = _appName
                             }
                         }
                     }).GetAwaiter().GetResult();

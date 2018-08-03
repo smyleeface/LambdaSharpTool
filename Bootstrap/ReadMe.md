@@ -2,7 +2,7 @@
 
 # Setup LambdaSharp Environment
 
-Setting up the λ# environment is required for each deployment name (e.g. `Test`, `Stage`, `Prod`, etc.).
+Setting up the λ# environment is required for each development tier (e.g. `Test`, `Stage`, `Prod`, etc.).
 
 ## 1) Install λ# Tool
 
@@ -44,7 +44,7 @@ Options:
   -?|-h|--help  Show help information
 
 Commands:
-  deploy        Deploy LambdaSharp app
+  deploy        Create/Update LambdaSharp deployment
   info          Show LambdaSharp settings
   new           Create new LambdaSharp asset
 
@@ -53,26 +53,26 @@ Run 'MindTouch.LambdaSharp.Tool [command] --help' for more information about a c
 
 ## 2) λ# Bootstrap
 
-The λ# environment requires an AWS account to be setup for each deployment name (e.g. `Test`, `Stage`, `Prod`, etc.). λ# apps can be deployed once the deployment has the needed AWS resources.
+The λ# environment requires an AWS account to be setup for each development tier (e.g. `Test`, `Stage`, `Prod`, etc.). λ# deployments can be deployed once the development tier has the needed AWS resources.
 
 λ# requires some resources to exist to deploy apps. These are created during the bootstrap phase. The following command creates the basic resources needed to deploy lambda functions, such as a the deployment bucket and dead-letter queue.
 
-For the purpose of this tutorial, we use `MyDeployment` as the new deployment name. The next step MUST to be repeated for each deployment name.
+For the purpose of this tutorial, we use `Demo` as the new tier name. The next step must to be repeated for each development tier (e.g. `Test`, `Stage`, `Prod`, etc.).
 
 ```bash
 lash deploy \
     --bootstrap \
-    --deployment MyDeployment \
+    --tier Demo \
     $LAMBDASHARP/Bootstrap/LambdaSharp/Deploy.yml
 ```
 
 ## 3) λ# Rollbar Integration (optional)
 
-λ# can optionally integrate with [Rollbar](https://rollbar.com). Rollbar is a service for capturing errors and warnings in apps. When the Rollbar integration is used, a Rollbar project will be created for the app and all functions within the stack will automatically report any errors that occur to that project.
+λ# can optionally integrate with [Rollbar](https://rollbar.com). Rollbar is a service for capturing errors and warnings in apps. When the Rollbar integration is used, a Rollbar project will be created for each deployment and all functions within the stack will automatically report any errors that occur to that project.
 
-To prepare the Rollbar integration for deployment, you will need to obtain the `read` and `write` access tokens from your Rollbar account under _Account Access Tokens_:
+To prepare the Rollbar integration, you will need to obtain the `read` and `write` access tokens from your Rollbar account under _Account Access Tokens_:
 
-In addition, create a `LambdaSharpRollbar-{{Deployment}}` project that will be used to track any errors for the Rollbar integration. Under _Project Access Tokens_ make a copy of the `post_server_item`.
+In addition, create a `{{Tier}}-LambdaSharpRollbar` project that will be used to track any errors for the Rollbar integration. Under _Project Access Tokens_ make a copy of the `post_server_item`.
 
 Encrypt all three values using a KMS key (e.g. `developer-secrets-key`) and edit your `Deploy.yml` file as follows:
 1. Under `RollbarToken`, paste the encrypted `post_server_item` value. This parameter is used by the Rollbar integration to post any errors that occur.
@@ -85,7 +85,7 @@ Now you are ready to deploy your Rollbar integration. The following command depl
 
 ```bash
 lash deploy \
-    --deployment MyDeployment \
+    --tier Demo \
     $LAMBDASHARP/Bootstrap/LambdaSharpRollbar/Deploy.yml
 ```
 
@@ -95,6 +95,6 @@ lash deploy \
 
 ```bash
 lash deploy \
-    --deployment MyDeployment \
+    --tier Demo \
     $LAMBDASHARP/Bootstrap/LambdaSharpS3PackageLoader/Deploy.yml
 ```

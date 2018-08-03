@@ -4,7 +4,7 @@
 
 Before you begin, make sure to [setup your λ# environment](../../Bootstrap/).
 
-## Deployment
+## Deployment File
 
 Creating a function that is invoked by a S3 bucket events requires two steps. First, the S3 topic must be created in the `Parameters` section. Referencing an existing S3 bucket does not work. Second, the function must reference the parameter name in its `Sources` section using the `S3` attribute.
 
@@ -13,7 +13,7 @@ Optionally, the `S3` attribute can specify specific [S3 events](https://docs.aws
 ```yaml
 Name: S3Sample
 
-Description: A sample app integrating with S3 Bucket events
+Description: A sample deployment integrating with S3 Bucket events
 
 Parameters:
 

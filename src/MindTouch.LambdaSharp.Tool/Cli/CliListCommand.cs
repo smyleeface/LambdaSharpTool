@@ -38,19 +38,19 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                 cmd.Description = "List LambdaSharp deployments";
 
                 // command options
-                var deploymentOption = cmd.Option("--deployment|-D <NAME>", "(optional) Name of deployment (default: LAMBDASHARPDEPLOYMENT environment variable)", CommandOptionType.SingleValue);
+                var tierOption = cmd.Option("--tier|-T <NAME>", "(optional) Name of development tier (default: LAMBDASHARPTIER environment variable)", CommandOptionType.SingleValue);
                 var awsProfileOption = cmd.Option("--profile|-P <NAME>", "(optional) Use a specific AWS profile from the AWS credentials file", CommandOptionType.SingleValue);
                 cmd.OnExecute(async () => {
                     Console.WriteLine($"{app.FullName} - {cmd.Description}");
 
-                    // initialize deployment value
-                    var deployment = deploymentOption.Value() ?? Environment.GetEnvironmentVariable("LAMBDASHARPDEPLOYMENT");
-                    if(deployment == null) {
-                        AddError("missing 'deployment' name");
+                    // initialize tier value
+                    var tier = tierOption.Value() ?? Environment.GetEnvironmentVariable("LAMBDASHARPTIER");
+                    if(tier == null) {
+                        AddError("missing 'tier' name");
                         return;
                     }
-                    if(deployment == "Default") {
-                        AddError("deployment cannot be 'Default' because it is a reserved name");
+                    if(tier == "Default") {
+                        AddError("tier cannot be 'Default' because it is a reserved name");
                         return;
                     }
 
@@ -61,12 +61,12 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                         // select an alternate AWS profile by setting the AWS_PROFILE environment variable
                         Environment.SetEnvironmentVariable("AWS_PROFILE", awsProfile);
                     }
-                    await List(deployment);
+                    await List(tier);
                 });
             });
         }
 
-        private async Task List(string deployment) {
+        private async Task List(string tier) {
             var cfClient = new AmazonCloudFormationClient();
             var request = new ListStacksRequest {
                 StackStatusFilter = new List<string> {
@@ -91,7 +91,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
             };
 
             // fetch all stacks
-            var prefix = $"{deployment}-";
+            var prefix = $"{tier}-";
             var summaries = new List<StackSummary>();
             do {
                 var response = await cfClient.ListStacksAsync(request);

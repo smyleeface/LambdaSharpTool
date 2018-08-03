@@ -6,7 +6,7 @@ The objectives of λ# is to accelerate the innovation velocity of serverless sol
 
 λ# is a .NET Core 2.x framework and tooling for rapid application development, deployment, and management of [AWS Lambda](https://aws.amazon.com/lambda/) functions and serverless infrastructure. Resources are automatically converted into parameters for easy access by AWS Lambda functions written in C#. Furthermore, λ# apps are composed by exchanging resource references using the [AWS Systems Manager Parameter Store](https://aws.amazon.com/systems-manager/features/).
 
-When creating a λ# app, you only need to worry about three files:
+When creating a λ# deployment, you only need to worry about three files:
 * The AWS Lambda C# code
 * The .NET Core project file
 * The λ# deployment file
@@ -28,12 +28,12 @@ namespace GettingStarted.SlackCommand {
 }
 ```
 
-The λ# deployment tool uses a YAML file to compile, upload, and deploy the CloudFormation stack all in one step. The YAML describes the app, its parameters, resources, and functions.
+The λ# deployment tool uses a YAML file to compile, upload, and deploy the CloudFormation stack all in one step. The YAML file describes the entire deployment: its parameters, resources, and functions.
 
 ```yaml
 Name: GettingStarted
 
-Description: Intro app that shows a Slack integration
+Description: Intro deployment that shows a Slack integration
 
 Functions:
   - Name: SlackCommand

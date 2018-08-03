@@ -27,7 +27,7 @@ using MindTouch.LambdaSharp;
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
 
-namespace MindTouch.LambdaSharpTest.Function {
+namespace MindTouch.LambdaSharpTestDeployment.Function {
 
     public class Function : ALambdaFunction {
 

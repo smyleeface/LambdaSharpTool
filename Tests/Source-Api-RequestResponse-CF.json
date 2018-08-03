@@ -6,8 +6,8 @@
       "Type": "Custom::LambdaSharpRollbarProject",
       "Properties": {
         "ServiceToken": "arn:aws:sns:us-east-1:123456789012:LambdaSharpRollbar-RollbarCustomResourceTopic",
-        "Project": "Test",
-        "Deployment": "test"
+        "Project": "TestDeployment",
+        "Tier": "TestTier"
       }
     },
     "AppRole": {
@@ -52,7 +52,7 @@
                 }
               ]
             },
-            "PolicyName": "test-Test-policy"
+            "PolicyName": "TestTier-TestDeployment-policy"
           }
         ]
       }
@@ -62,16 +62,16 @@
       "Properties": {
         "Code": {
           "S3Bucket": "lambdsharp-bucket-name",
-          "S3Key": "test/Test/Test.Function-NOCOMPILE.zip"
+          "S3Key": "TestDeployment/TestDeployment.Function-NOCOMPILE.zip"
         },
         "DeadLetterConfig": {
           "TargetArn": "arn:aws:sqs:us-east-1:123456789012:LambdaSharp-DeadLetterQueue"
         },
         "Environment": {
           "Variables": {
-            "DEPLOYMENT": "test",
-            "APPNAME": "Test",
-            "STACKNAME": "test-Test",
+            "TIER": "TestTier",
+            "APPNAME": "TestDeployment",
+            "STACKNAME": "TestTier-TestDeployment",
             "DEADLETTERQUEUE": "https://sqs.us-east-1.amazonaws.com/123456789012/LambdaSharp-DeadLetterQueue",
             "LAMBDARUNTIME": "dotnetcore2.1",
             "STACK_ROLLBARTOKEN": {
@@ -82,8 +82,8 @@
             }
           }
         },
-        "FunctionName": "test-Test-Function",
-        "Handler": "Test.Function::MindTouch.LambdaSharpTest.Function.Function::FunctionHandlerAsync",
+        "FunctionName": "TestTier-TestDeployment-Function",
+        "Handler": "TestDeployment.Function::MindTouch.LambdaSharpTestDeployment.Function.Function::FunctionHandlerAsync",
         "MemorySize": "128",
         "Role": {
           "Fn::GetAtt": [
@@ -94,26 +94,26 @@
         "Runtime": "dotnetcore2.1",
         "Tags": [
           {
-            "Key": "lambdasharp:deployment",
-            "Value": "test"
+            "Key": "lambdasharp:tier",
+            "Value": "TestTier"
           },
           {
-            "Key": "lambdasharp:app",
-            "Value": "Test"
+            "Key": "lambdasharp:deployment",
+            "Value": "TestDeployment"
           }
         ],
         "Timeout": "30"
       }
     },
-    "TestRestApi": {
+    "TestDeploymentRestApi": {
       "Type": "AWS::ApiGateway::RestApi",
       "Properties": {
-        "Description": "API for Test: LambdaSharp CloudFormation Test",
+        "Description": "API for TestDeployment: LambdaSharp CloudFormation Test",
         "FailOnWarnings": true,
-        "Name": "Test API (test)"
+        "Name": "TestDeployment API (TestTier)"
       }
     },
-    "TestRestApiRole": {
+    "TestDeploymentRestApiRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
         "AssumeRolePolicyDocument": {
@@ -146,38 +146,38 @@
                 }
               ]
             },
-            "PolicyName": "TestRestApiRolePolicy"
+            "PolicyName": "TestDeploymentRestApiRolePolicy"
           }
         ]
       }
     },
-    "TestRestApiAccount": {
+    "TestDeploymentRestApiAccount": {
       "Type": "AWS::ApiGateway::Account",
       "Properties": {
         "CloudWatchRoleArn": {
           "Fn::GetAtt": [
-            "TestRestApiRole",
+            "TestDeploymentRestApiRole",
             "Arn"
           ]
         }
       }
     },
-    "TestRestApiItemsResource": {
+    "TestDeploymentRestApiItemsResource": {
       "Type": "AWS::ApiGateway::Resource",
       "Properties": {
         "ParentId": {
           "Fn::GetAtt": [
-            "TestRestApi",
+            "TestDeploymentRestApi",
             "RootResourceId"
           ]
         },
         "PathPart": "items",
         "RestApiId": {
-          "Ref": "TestRestApi"
+          "Ref": "TestDeploymentRestApi"
         }
       }
     },
-    "TestRestApiItemsGET": {
+    "TestDeploymentRestApiItemsGET": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
         "AuthorizationType": "NONE",
@@ -200,14 +200,14 @@
           }
         },
         "ResourceId": {
-          "Ref": "TestRestApiItemsResource"
+          "Ref": "TestDeploymentRestApiItemsResource"
         },
         "RestApiId": {
-          "Ref": "TestRestApi"
+          "Ref": "TestDeploymentRestApi"
         }
       }
     },
-    "FunctionTestRestApiItemsGETPermission": {
+    "FunctionTestDeploymentRestApiItemsGETPermission": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "Action": "lambda:InvokeFunction",
@@ -223,14 +223,14 @@
             "arn:aws:execute-api:us-east-1:123456789012:${RestApi}/LATEST/GET/items",
             {
               "RestApi": {
-                "Ref": "TestRestApi"
+                "Ref": "TestDeploymentRestApi"
               }
             }
           ]
         }
       }
     },
-    "TestRestApiItemsPOST": {
+    "TestDeploymentRestApiItemsPOST": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
         "AuthorizationType": "NONE",
@@ -253,14 +253,14 @@
           }
         },
         "ResourceId": {
-          "Ref": "TestRestApiItemsResource"
+          "Ref": "TestDeploymentRestApiItemsResource"
         },
         "RestApiId": {
-          "Ref": "TestRestApi"
+          "Ref": "TestDeploymentRestApi"
         }
       }
     },
-    "FunctionTestRestApiItemsPOSTPermission": {
+    "FunctionTestDeploymentRestApiItemsPOSTPermission": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "Action": "lambda:InvokeFunction",
@@ -276,26 +276,26 @@
             "arn:aws:execute-api:us-east-1:123456789012:${RestApi}/LATEST/POST/items",
             {
               "RestApi": {
-                "Ref": "TestRestApi"
+                "Ref": "TestDeploymentRestApi"
               }
             }
           ]
         }
       }
     },
-    "TestRestApiItemsIdResource": {
+    "TestDeploymentRestApiItemsIdResource": {
       "Type": "AWS::ApiGateway::Resource",
       "Properties": {
         "ParentId": {
-          "Ref": "TestRestApiItemsResource"
+          "Ref": "TestDeploymentRestApiItemsResource"
         },
         "PathPart": "{id}",
         "RestApiId": {
-          "Ref": "TestRestApi"
+          "Ref": "TestDeploymentRestApi"
         }
       }
     },
-    "TestRestApiItemsIdGET": {
+    "TestDeploymentRestApiItemsIdGET": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
         "AuthorizationType": "NONE",
@@ -318,14 +318,14 @@
           }
         },
         "ResourceId": {
-          "Ref": "TestRestApiItemsIdResource"
+          "Ref": "TestDeploymentRestApiItemsIdResource"
         },
         "RestApiId": {
-          "Ref": "TestRestApi"
+          "Ref": "TestDeploymentRestApi"
         }
       }
     },
-    "FunctionTestRestApiItemsIdGETPermission": {
+    "FunctionTestDeploymentRestApiItemsIdGETPermission": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "Action": "lambda:InvokeFunction",
@@ -341,14 +341,14 @@
             "arn:aws:execute-api:us-east-1:123456789012:${RestApi}/LATEST/GET/items/{id}",
             {
               "RestApi": {
-                "Ref": "TestRestApi"
+                "Ref": "TestDeploymentRestApi"
               }
             }
           ]
         }
       }
     },
-    "TestRestApiItemsIdPUT": {
+    "TestDeploymentRestApiItemsIdPUT": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
         "AuthorizationType": "NONE",
@@ -371,14 +371,14 @@
           }
         },
         "ResourceId": {
-          "Ref": "TestRestApiItemsIdResource"
+          "Ref": "TestDeploymentRestApiItemsIdResource"
         },
         "RestApiId": {
-          "Ref": "TestRestApi"
+          "Ref": "TestDeploymentRestApi"
         }
       }
     },
-    "FunctionTestRestApiItemsIdPUTPermission": {
+    "FunctionTestDeploymentRestApiItemsIdPUTPermission": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "Action": "lambda:InvokeFunction",
@@ -394,14 +394,14 @@
             "arn:aws:execute-api:us-east-1:123456789012:${RestApi}/LATEST/PUT/items/{id}",
             {
               "RestApi": {
-                "Ref": "TestRestApi"
+                "Ref": "TestDeploymentRestApi"
               }
             }
           ]
         }
       }
     },
-    "TestRestApiItemsIdDELETE": {
+    "TestDeploymentRestApiItemsIdDELETE": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
         "AuthorizationType": "NONE",
@@ -424,14 +424,14 @@
           }
         },
         "ResourceId": {
-          "Ref": "TestRestApiItemsIdResource"
+          "Ref": "TestDeploymentRestApiItemsIdResource"
         },
         "RestApiId": {
-          "Ref": "TestRestApi"
+          "Ref": "TestDeploymentRestApi"
         }
       }
     },
-    "FunctionTestRestApiItemsIdDELETEPermission": {
+    "FunctionTestDeploymentRestApiItemsIdDELETEPermission": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "Action": "lambda:InvokeFunction",
@@ -447,34 +447,34 @@
             "arn:aws:execute-api:us-east-1:123456789012:${RestApi}/LATEST/DELETE/items/{id}",
             {
               "RestApi": {
-                "Ref": "TestRestApi"
+                "Ref": "TestDeploymentRestApi"
               }
             }
           ]
         }
       }
     },
-    "TestRestApiDeployment9802718D62AE0271061EA5880DEAF5DE": {
+    "TestDeploymentRestApiDeploymentC5270BE3FD219EBEB8BAE7AA9FE1570B": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
-        "Description": "Test API (test) [9802718D62AE0271061EA5880DEAF5DE]",
+        "Description": "TestDeployment API (TestTier) [C5270BE3FD219EBEB8BAE7AA9FE1570B]",
         "RestApiId": {
-          "Ref": "TestRestApi"
+          "Ref": "TestDeploymentRestApi"
         }
       },
       "DependsOn": [
-        "TestRestApiItemsGET",
-        "TestRestApiItemsPOST",
-        "TestRestApiItemsIdGET",
-        "TestRestApiItemsIdPUT",
-        "TestRestApiItemsIdDELETE"
+        "TestDeploymentRestApiItemsGET",
+        "TestDeploymentRestApiItemsPOST",
+        "TestDeploymentRestApiItemsIdGET",
+        "TestDeploymentRestApiItemsIdPUT",
+        "TestDeploymentRestApiItemsIdDELETE"
       ]
     },
-    "TestRestApiStage": {
+    "TestDeploymentRestApiStage": {
       "Type": "AWS::ApiGateway::Stage",
       "Properties": {
         "DeploymentId": {
-          "Ref": "TestRestApiDeployment9802718D62AE0271061EA5880DEAF5DE"
+          "Ref": "TestDeploymentRestApiDeploymentC5270BE3FD219EBEB8BAE7AA9FE1570B"
         },
         "MethodSettings": [
           {
@@ -485,12 +485,12 @@
           }
         ],
         "RestApiId": {
-          "Ref": "TestRestApi"
+          "Ref": "TestDeploymentRestApi"
         },
         "StageName": "LATEST"
       },
       "DependsOn": [
-        "TestRestApiAccount"
+        "TestDeploymentRestApiAccount"
       ]
     }
   },
@@ -502,7 +502,7 @@
           [
             "https://",
             {
-              "Ref": "TestRestApi"
+              "Ref": "TestDeploymentRestApi"
             },
             ".execute-api.",
             {
@@ -516,7 +516,7 @@
           ]
         ]
       },
-      "Description": "API for Test: LambdaSharp CloudFormation Test"
+      "Description": "API for TestDeployment: LambdaSharp CloudFormation Test"
     }
   }
 }

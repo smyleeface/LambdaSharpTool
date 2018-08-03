@@ -53,7 +53,7 @@ namespace MindTouch.LambdaSharp.Tool {
         private const string SECRET_ALIAS_PATTERN = "[0-9a-zA-Z/_\\-]+";
 
         //--- Fields ---
-        private App _app;
+        private Deployment _deployment;
         private ImportResolver _importer;
         private bool _noCompile;
 
@@ -61,20 +61,20 @@ namespace MindTouch.LambdaSharp.Tool {
         public ModelParser(Settings settings) : base(settings) { }
 
         //--- Methods ---
-        public App Parse(YamlDotNet.Core.IParser yamlParser, bool noCompile) {
-            _app = new App {
+        public Deployment Parse(YamlDotNet.Core.IParser yamlParser, bool noCompile) {
+            _deployment = new Deployment {
                 Settings = Settings
             };
             _noCompile = noCompile;
             _importer = new ImportResolver(Settings.SsmClient);
 
-            // parse YAML file into app AST
-            AppNode appNode;
+            // parse YAML file into deployment AST
+            DeploymentNode appNode;
             try {
                 appNode = new DeserializerBuilder()
                     .WithNamingConvention(new PascalCaseNamingConvention())
                     .Build()
-                    .Deserialize<AppNode>(yamlParser);
+                    .Deserialize<DeploymentNode>(yamlParser);
             } catch(Exception e) {
                 AddError($"parse error: {e.Message}", e);
                 return null;
@@ -85,7 +85,7 @@ namespace MindTouch.LambdaSharp.Tool {
                 AddError("the 'Version' attribute is no longer supported");
             }
 
-            // convert app file
+            // convert deployment file
             try {
                 return Convert(appNode);
             } catch(Exception e) {
@@ -94,30 +94,30 @@ namespace MindTouch.LambdaSharp.Tool {
             }
         }
 
-        private App Convert(AppNode app) {
-            Validate(app.Name != null, "missing app name");
+        private Deployment Convert(DeploymentNode deployment) {
+            Validate(deployment.Name != null, "missing deployment name");
 
             // ensure collections are present
-            if(app.Secrets == null) {
-                app.Secrets = new List<string>();
+            if(deployment.Secrets == null) {
+                deployment.Secrets = new List<string>();
             }
-            if(app.Parameters == null) {
-                app.Parameters = new List<ParameterNode>();
+            if(deployment.Parameters == null) {
+                deployment.Parameters = new List<ParameterNode>();
             }
-            if(app.Functions == null) {
-                app.Functions = new List<FunctionNode>();
+            if(deployment.Functions == null) {
+                deployment.Functions = new List<FunctionNode>();
             }
 
-            // initialize app
-            _app = new App {
-                Name = app.Name ?? "<BAD>",
+            // initialize deployment
+            _deployment = new Deployment {
+                Name = deployment.Name ?? "<BAD>",
                 Settings = Settings,
-                Description = app.Description
+                Description = deployment.Description
             };
 
             // convert secrets
             var secretIndex = 0;
-            _app.Secrets = AtLocation("Secrets", () => app.Secrets
+            _deployment.Secrets = AtLocation("Secrets", () => deployment.Secrets
                 .Select(secret => ConvertSecret(++secretIndex, secret))
                 .Where(secret => secret != null)
                 .ToList()
@@ -125,61 +125,61 @@ namespace MindTouch.LambdaSharp.Tool {
 
             // check if we need to add a 'RollbarToken' parameter node
             if(
-                (_app.Settings.RollbarCustomResourceTopicArn != null)
-                && app.Functions.Any()
-                && !app.Parameters.Any(param => param.Name == "RollbarToken")
+                (_deployment.Settings.RollbarCustomResourceTopicArn != null)
+                && deployment.Functions.Any()
+                && !deployment.Parameters.Any(param => param.Name == "RollbarToken")
             ) {
-                app.Parameters.Add(new ParameterNode {
+                deployment.Parameters.Add(new ParameterNode {
                     Name = "RollbarToken",
                     Description = "Rollbar project token",
                     Resource = new ResourceNode {
                         Type = "LambdaSharp::RollbarProject",
                         Allow = "None",
                         Properties = new Dictionary<string, object> {
-                            ["ServiceToken"] = _app.Settings.RollbarCustomResourceTopicArn,
-                            ["Project"] = _app.Name,
-                            ["Deployment"] = _app.Settings.Deployment
+                            ["ServiceToken"] = _deployment.Settings.RollbarCustomResourceTopicArn,
+                            ["Project"] = _deployment.Name,
+                            ["Tier"] = _deployment.Settings.Tier
                         }
                     }
                 });
             }
 
             // resolve all imported parameters
-            ImportValuesFromParameterStore(app);
+            ImportValuesFromParameterStore(deployment);
 
             // convert parameters
-            _app.Parameters = AtLocation("Parameters", () => ConvertParameters(app.Parameters), null) ?? new List<AParameter>();
+            _deployment.Parameters = AtLocation("Parameters", () => ConvertParameters(deployment.Parameters), null) ?? new List<AParameter>();
 
             // create `parameters.json` serialization
             var functionParameters = new Dictionary<string, LambdaFunctionParameter>();
-            foreach(var parameter in _app.Parameters) {
+            foreach(var parameter in _deployment.Parameters) {
                 AddFunctionParameter(parameter, functionParameters);
             }
             var functionParametersJson = JsonConvert.SerializeObject(functionParameters);
 
             // create functions
-            _app.Functions = new List<Function>();
-            if(app.Functions.Any()) {
+            _deployment.Functions = new List<Function>();
+            if(deployment.Functions.Any()) {
                 AtLocation("Functions", () => {
 
                     // check if a deployment bucket was specified
-                    if(_app.Settings.DeploymentBucketName == null) {
+                    if(_deployment.Settings.DeploymentBucketName == null) {
                         AddError("deploying functions requires a deployment bucket");
                     }
 
                     // adde dead-letter queue permissions
-                    if(_app.Settings.DeadLetterQueueUrl == null) {
+                    if(_deployment.Settings.DeadLetterQueueUrl == null) {
                         AddError("deploying functions requires a dead letter queue ARN");
                     }
                 });
                 var functionIndex = 0;
-                _app.Functions = AtLocation("Functions", () => app.Functions
+                _deployment.Functions = AtLocation("Functions", () => deployment.Functions
                     .Select(function => ConvertFunction(++functionIndex, function, functionParametersJson))
                     .Where(function => function != null)
                     .ToList()
                 , null) ?? new List<Function>();
             }
-            return _app;
+            return _deployment;
         }
 
         public string ConvertSecret(int index, object rawSecret) {
@@ -201,7 +201,7 @@ namespace MindTouch.LambdaSharp.Tool {
                 if(secret.StartsWith("arn:")) {
 
                     // validate secret arn
-                    if(!Regex.IsMatch(secret, $"arn:aws:kms:{_app.Settings.AwsRegion}:{_app.Settings.AwsAccountId}:key/[a-fA-F0-9\\-]+")) {
+                    if(!Regex.IsMatch(secret, $"arn:aws:kms:{_deployment.Settings.AwsRegion}:{_deployment.Settings.AwsAccountId}:key/[a-fA-F0-9\\-]+")) {
                         AddError("secret key must be a valid ARN for the current region and account ID");
                         return null;
                     }
@@ -218,7 +218,7 @@ namespace MindTouch.LambdaSharp.Tool {
 
                 // assume key name is an alias and resolve it to its ARN
                 try {
-                    var response = _app.Settings.KmsClient.DescribeKeyAsync($"alias/{secret}").Result;
+                    var response = _deployment.Settings.KmsClient.DescribeKeyAsync($"alias/{secret}").Result;
                     return response.KeyMetadata.Arn;
                 } catch(Exception e) {
                     AddError($"failed to resolve key alias: {secret}", e);
@@ -377,7 +377,7 @@ namespace MindTouch.LambdaSharp.Tool {
                                             Description = parameter.Description,
                                             Secret = value.Value,
                                             EncryptionContext = new Dictionary<string, string> {
-                                                ["PARAMETER_ARN"] = $"arn:aws:ssm:{_app.Settings.AwsRegion}:{_app.Settings.AwsAccountId}:parameter{parameter.Import}"
+                                                ["PARAMETER_ARN"] = $"arn:aws:ssm:{_deployment.Settings.AwsRegion}:{_deployment.Settings.AwsAccountId}:parameter{parameter.Import}"
                                             }
                                         };
                                         break;
@@ -405,7 +405,7 @@ namespace MindTouch.LambdaSharp.Tool {
                             AtLocation("Package", () => {
 
                                 // check if S3 sync topic arn exists
-                                if(_app.Settings.S3PackageLoaderCustomResourceTopicArn == null) {
+                                if(_deployment.Settings.S3PackageLoaderCustomResourceTopicArn == null) {
                                     AddError("parameter package requires S3PackageLoader custom resource handler to be deployed");
                                     return;
                                 }
@@ -453,7 +453,7 @@ namespace MindTouch.LambdaSharp.Tool {
                                         }
                                     }
                                     var hash = string.Concat(md5.ComputeHash(bytes.ToArray()).Select(x => x.ToString("X2")));
-                                    package = $"{_app.Name}-{parameter.Name}-Package-{hash}.zip";
+                                    package = $"{_deployment.Name}-{parameter.Name}-Package-{hash}.zip";
                                 }
 
                                 // create zip package
@@ -476,7 +476,7 @@ namespace MindTouch.LambdaSharp.Tool {
                                     Description = parameter.Description,
                                     Package = package,
                                     Bucket = parameter.Destination.Bucket,
-                                    PackageS3Key = $"{_app.Name}/{package}",
+                                    PackageS3Key = $"{_deployment.Name}/{package}",
                                     Prefix = parameter.Destination.Prefix
                                 };
                             });
@@ -554,7 +554,7 @@ namespace MindTouch.LambdaSharp.Tool {
                             }
                             resource.Properties["ServiceToken"] = importedValue;
                         }
-                    } else if(!_app.Settings.ResourceMapping.IsResourceTypeSupported(resource.Type)) {
+                    } else if(!_deployment.Settings.ResourceMapping.IsResourceTypeSupported(resource.Type)) {
                         AddError($"unsupported resource type: {resource.Type}");
                         return "<BAD>";
                     }
@@ -587,7 +587,7 @@ namespace MindTouch.LambdaSharp.Tool {
 
                             // AWS permission statements always contain a `:` (e.g `ssm:GetParameter`)
                             allowSet.Add(allowStatement);
-                        } else if(_app.Settings.ResourceMapping.TryResolveAllowShorthand(resourceType, allowStatement, out IList<string> allowedList)) {
+                        } else if(_deployment.Settings.ResourceMapping.TryResolveAllowShorthand(resourceType, allowStatement, out IList<string> allowedList)) {
                             foreach(var allowed in allowedList) {
                                 allowSet.Add(allowed);
                             }
@@ -670,8 +670,8 @@ namespace MindTouch.LambdaSharp.Tool {
                 var handler = function.Handler;
                 var runtime = function.Runtime;
                 var zipFinalPackage = AtLocation("Project", () => {
-                    var projectName = function.Project ?? $"{_app.Name}.{function.Name}";
-                    var project = Path.Combine(_app.Settings.WorkingDirectory, projectName, projectName + ".csproj");
+                    var projectName = function.Project ?? $"{_deployment.Name}.{function.Name}";
+                    var project = Path.Combine(_deployment.Settings.WorkingDirectory, projectName, projectName + ".csproj");
                     string targetFramework;
 
                     // check if csproj file exists in project folder
@@ -728,8 +728,8 @@ namespace MindTouch.LambdaSharp.Tool {
                     }
 
                     // dotnet tools have to be run from the project folder; otherwise specialized tooling is not picked up from the .csproj file
-                    var projectDirectory = Path.Combine(_app.Settings.WorkingDirectory, projectName);
-                    foreach(var file in Directory.GetFiles(_app.Settings.WorkingDirectory, $"{projectName}-*.zip")) {
+                    var projectDirectory = Path.Combine(_deployment.Settings.WorkingDirectory, projectName);
+                    foreach(var file in Directory.GetFiles(_deployment.Settings.WorkingDirectory, $"{projectName}-*.zip")) {
                         try {
                             File.Delete(file);
                         } catch { }
@@ -751,7 +751,7 @@ namespace MindTouch.LambdaSharp.Tool {
                     }
 
                     // check if the project zip file was created
-                    var zipOriginalPackage = Path.Combine(_app.Settings.WorkingDirectory, projectName, projectName + ".zip");
+                    var zipOriginalPackage = Path.Combine(_deployment.Settings.WorkingDirectory, projectName, projectName + ".zip");
                     if(!File.Exists(zipOriginalPackage)) {
                         AddError($"could not find project package: {zipOriginalPackage}");
                         return null;
@@ -780,8 +780,8 @@ namespace MindTouch.LambdaSharp.Tool {
                         File.WriteAllText(Path.Combine(tempDirectory, PARAMETERSFILE), functionParametersJson);
 
                         // add `gitsha.txt` if GitSha is supplied
-                        if(_app.Settings.GitSha != null) {
-                            File.WriteAllText(Path.Combine(tempDirectory, GITSHAFILE), _app.Settings.GitSha);
+                        if(_deployment.Settings.GitSha != null) {
+                            File.WriteAllText(Path.Combine(tempDirectory, GITSHAFILE), _deployment.Settings.GitSha);
                         }
 
                         // compress temp folder into new package
@@ -807,7 +807,7 @@ namespace MindTouch.LambdaSharp.Tool {
                                 }
                             }
                             var hash = string.Concat(md5.ComputeHash(bytes.ToArray()).Select(x => x.ToString("X2")));
-                            package = Path.Combine(_app.Settings.WorkingDirectory, $"{projectName}-{hash}.zip");
+                            package = Path.Combine(_deployment.Settings.WorkingDirectory, $"{projectName}-{hash}.zip");
                         }
 
                         // compress folder contents
@@ -847,7 +847,7 @@ namespace MindTouch.LambdaSharp.Tool {
                     Description = function.Description,
                     Sources = AtLocation("Sources", () => function.Sources?.Select(source => ConvertFunctionSource(++eventIndex, source)).Where(evt => evt != null).ToList(), null) ?? new List<AFunctionSource>(),
                     Package = zipFinalPackage,
-                    PackageS3Key = $"{_app.Name}/{Path.GetFileName(zipFinalPackage)}",
+                    PackageS3Key = $"{_deployment.Name}/{Path.GetFileName(zipFinalPackage)}",
                     Handler = handler,
                     Runtime = runtime,
                     Memory = function.Memory,
@@ -876,7 +876,7 @@ namespace MindTouch.LambdaSharp.Tool {
 
                             // verify `Parameters` sections contains a valid topic reference
                             var topicName = source.Topic;
-                            var parameter = _app.Parameters.FirstOrDefault(param => param.Name == topicName);
+                            var parameter = _deployment.Parameters.FirstOrDefault(param => param.Name == topicName);
                             if(parameter == null) {
                                 AddError($"could not find parameter for SNS topic: '{topicName}'");
                             } else if(!(parameter is AResourceParameter resourceParameter)) {
@@ -976,7 +976,7 @@ namespace MindTouch.LambdaSharp.Tool {
                         };
 
                         // verify `Parameters` sections contains a valid bucket reference
-                        var parameter = _app.Parameters.FirstOrDefault(param => param.Name == s3.Bucket);
+                        var parameter = _deployment.Parameters.FirstOrDefault(param => param.Name == s3.Bucket);
                         if(parameter == null) {
                             AddError($"could not find parameter for S3 bucket: '{s3.Bucket}'");
                         } else if(!(parameter is AResourceParameter resourceParameter)) {
@@ -1004,7 +1004,7 @@ namespace MindTouch.LambdaSharp.Tool {
                         });
 
                         // verify `Parameters` sections contains a valid queue reference
-                        var parameter = _app.Parameters.FirstOrDefault(param => param.Name == sqs.Queue);
+                        var parameter = _deployment.Parameters.FirstOrDefault(param => param.Name == sqs.Queue);
                         if(parameter == null) {
                             AddError($"could not find parameter for SQS queue: '{sqs.Queue}'");
                         } else if(!(parameter is AResourceParameter resourceParameter)) {
@@ -1097,7 +1097,7 @@ namespace MindTouch.LambdaSharp.Tool {
             }
         }
 
-        private void ImportValuesFromParameterStore(AppNode app) {
+        private void ImportValuesFromParameterStore(DeploymentNode deployment) {
 
             // find all parameters with an `Import` field
             AtLocation("Parameters", () => FindAllParameterImports());
@@ -1115,7 +1115,7 @@ namespace MindTouch.LambdaSharp.Tool {
             // local functions
             void FindAllParameterImports(IEnumerable<ParameterNode> @params = null) {
                 var paramIndex = 0;
-                foreach(var param in @params ?? app.Parameters) {
+                foreach(var param in @params ?? deployment.Parameters) {
                     ++paramIndex;
                     var paramName = param.Name ?? $"#{paramIndex}";
                     if(param.Import != null) {
@@ -1125,9 +1125,9 @@ namespace MindTouch.LambdaSharp.Tool {
                                 return;
                             }
 
-                            // check if import requires a deployment prefix
+                            // check if import requires a development tier prefix
                             if(!param.Import.StartsWith("/")) {
-                                param.Import = $"/{_app.Settings.Deployment}/" + param.Import;
+                                param.Import = $"/{_deployment.Settings.Tier}/" + param.Import;
                             }
                             _importer.Add(param.Import);
                         });
@@ -1155,10 +1155,10 @@ namespace MindTouch.LambdaSharp.Tool {
                                         return;
                                     }
 
-                                    // parse resource name as `{APP}::{TYPE}` pattern to import the custom resource topic name
+                                    // parse resource name as `{DEPLOYMENT}::{TYPE}` pattern to import the custom resource topic name
                                     var customResourceHandlerAndType = resourceType.Split("::");
                                     if(customResourceHandlerAndType.Length != 2) {
-                                        AddError("custom resource type must have format {APP}::{TYPE}");
+                                        AddError("custom resource type must have format {DEPLOYMENT}::{TYPE}");
                                         return;
                                     }
                                     if(!Regex.IsMatch(customResourceHandlerAndType[0], CLOUDFORMATION_ID_PATTERN)) {
@@ -1173,7 +1173,7 @@ namespace MindTouch.LambdaSharp.Tool {
 
                                     // check if custom resource needs a service token to be retrieved
                                     if(!(param.Resource.Properties?.ContainsKey("ServiceToken") ?? false)) {
-                                        var serviceTokenImport = $"/{_app.Settings.Deployment}"
+                                        var serviceTokenImport = $"/{_deployment.Settings.Tier}"
                                             + $"/{customResourceHandlerAndType[0]}"
                                             + $"/{customResourceHandlerAndType[1]}CustomResourceTopic";
                                         param.Resource.ServiceTokenImport = serviceTokenImport;
@@ -1194,12 +1194,12 @@ namespace MindTouch.LambdaSharp.Tool {
             }
 
             void FindAllFunctionImports() {
-                foreach(var function in app.Functions.Where(function => function.VPC != null)) {
+                foreach(var function in deployment.Functions.Where(function => function.VPC != null)) {
                     AtLocation(function.Name, () => {
                         var vpc = function.VPC;
                         if(!string.IsNullOrEmpty(vpc)) {
                             if(!vpc.StartsWith("/")) {
-                                vpc = $"/{_app.Settings.Deployment}/VPC/{vpc}/";
+                                vpc = $"/{_deployment.Settings.Tier}/VPC/{vpc}/";
                             }
                             _importer.Add(vpc);
                         }
@@ -1226,7 +1226,7 @@ namespace MindTouch.LambdaSharp.Tool {
                 dotNetExe,
                 new[] { "restore" },
                 projectDirectory,
-                _app.Settings.VerboseLevel >= VerboseLevel.Detailed
+                _deployment.Settings.VerboseLevel >= VerboseLevel.Detailed
             );
         }
 
@@ -1240,7 +1240,7 @@ namespace MindTouch.LambdaSharp.Tool {
                 dotNetExe,
                 new[] { "lambda", "package", "-c", "Release", "-f", targetFramework, "-o", projectName + ".zip" },
                 projectDirectory,
-                _app.Settings.VerboseLevel >= VerboseLevel.Detailed
+                _deployment.Settings.VerboseLevel >= VerboseLevel.Detailed
             );
         }
 
@@ -1254,7 +1254,7 @@ namespace MindTouch.LambdaSharp.Tool {
                 zipTool,
                 new[] { "-r", zipArchivePath, "." },
                 zipFolder,
-                _app.Settings.VerboseLevel >= VerboseLevel.Detailed
+                _deployment.Settings.VerboseLevel >= VerboseLevel.Detailed
             );
         }
 
@@ -1268,7 +1268,7 @@ namespace MindTouch.LambdaSharp.Tool {
                 unzipTool,
                 new[] { zipArchivePath, "-d", unzipFolder },
                 Directory.GetCurrentDirectory(),
-                _app.Settings.VerboseLevel >= VerboseLevel.Detailed
+                _deployment.Settings.VerboseLevel >= VerboseLevel.Detailed
             );
         }
     }

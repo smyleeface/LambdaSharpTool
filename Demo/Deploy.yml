@@ -1,6 +1,6 @@
 Name: Demo
 
-Description: LambdaSharp demo app
+Description: LambdaSharp demo deployment
 
 Secrets:
   - developer-encryption-key

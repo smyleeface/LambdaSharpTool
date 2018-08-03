@@ -1,6 +1,6 @@
 Name: SlackCommandSample
 
-Description: A sample app integrating with Slack
+Description: A sample deployment integrating with Slack
 
 Functions:
   - Name: MyFunction

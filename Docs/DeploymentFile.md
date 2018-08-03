@@ -2,7 +2,7 @@
 
 # LambdaSharp Deployment File
 
-The λ# deployment file defines the parameters and functions of an app. Parameters can be either values or AWS resources. Functions are .NET Core projects that are wired up to various event sources defined in the deployment file. Parameters, resources, and their access permissions are shared across all functions that are part of the same deployment file. The λ# tool is responsible for generating the corresponding CloudFormation template, compiling .NET Core projects, uploading all assets, and automatically creating/updating the CloudFormation stack.
+The λ# deployment file defines the parameters and functions of a deployment. Parameters can be either values or AWS resources. Functions are .NET Core projects that are wired up to various invocation sources defined in the deployment file. Parameters, resources, and their access permissions are shared across all functions that are part of the same deployment. The λ# tool generates the CloudFormation template, compiles .NET Core projects, uploads all assets, and automatically creates/updates the CloudFormation stack.
 
 __Table of Contents__
 1. [General](#general)
@@ -11,7 +11,7 @@ __Table of Contents__
 1. [Parameters](#parameters)
 1. [Functions](#functions)
 
-## App
+## Deployment
 
 ```yaml
 Name: String
@@ -38,7 +38,7 @@ The <tt>Name</tt> attribute is used as prefix for CloudFormation resources, as w
 
 <dt><tt>Description</tt></dt>
 <dd>
-The <tt>Description</tt> attribute value is shown with the CloudFormation stack deployment.
+The <tt>Description</tt> attribute value is shown with the CloudFormation stack.
 
 <i>Required:</i> No
 
@@ -56,7 +56,7 @@ The <tt>Variables</tt> sections is an optional dictionary of key-value pairs. Va
 
 <dt><tt>Secrets</tt></dt>
 <dd>
-The <tt>Secrets</tt> section lists which KMS keys can be used to decrypt parameter values. The IAM role for the app will get permission to use these keys (i.e. `mks:Decrypt`).
+The <tt>Secrets</tt> section lists which KMS keys can be used to decrypt parameter values. The deployment IAM role will get permission to use these keys (i.e. `mks:Decrypt`).
 
 <i>Required:</i> No
 
@@ -65,7 +65,7 @@ The <tt>Secrets</tt> section lists which KMS keys can be used to decrypt paramet
 
 <dt><tt>Parameters</tt></dt>
 <dd>
-The <tt>Parameters</tt> section contains the app configuration. These values are published to the AWS Systems Manager Parameter Store for easy access by apps and sysadmins.
+The <tt>Parameters</tt> section contains the parameter values and resources for the deployment. In addition, these values can be published to the AWS Systems Manager Parameter Store for easy access by other deployments and sysadmins.
 
 <i>Required:</i> No
 
@@ -74,7 +74,7 @@ The <tt>Parameters</tt> section contains the app configuration. These values are
 
 <dt><tt>Functions</tt></dt>
 <dd>
-The <tt>Functions</tt> section contains the lambda functions that are part of this LambdaSharp app. All functions receive the same IAM role and have equal access to all parameters.
+The <tt>Functions</tt> section contains the lambda functions that are part of the deployment. All functions receive the same IAM role and have equal access to all parameters.
 
 <i>Required:</i> No
 
@@ -84,18 +84,18 @@ The <tt>Functions</tt> section contains the lambda functions that are part of th
 
 ## Variables
 
-The `Variables` sections is an optional dictionary of key-value pairs. Variables are used in string substitutions to make it easy to change settings in the deployment file.
+The `Variables` sections is an optional mapping of key-value pairs. Variables are used in string substitutions to make it easy to change settings in the deployment file.
 
 The following variables are implicitly defined and can be used in text values to dynamically compute the correct value.
-* `{{Deployment}}`: the name of the active deployment
-* `{{Name}}`: the name of the app
-* `{{AwsAccountId}}`: the AWS account ID used for the deployment
-* `{{AwsRegion}}`: the AWS deployment region
-* `{{GitSha}}`: full git SHA of the deployed code (40 characters)
+* `{{Tier}}`: the name of the active tier
+* `{{Deployment}}`: the name of the deployment
+* `{{AwsAccountId}}`: the AWS account ID
+* `{{AwsRegion}}`: the AWS region
+* `{{GitSha}}`: Git SHA (40 characters)
 
 **NOTE:** Beware that using the `{{GitSha}}` in substitutions will cause the CloudFormation template to change with every Git revision. This means that the λ# tool will trigger a stack update every time. Even if no other values have changed!
 
-Variables are used by parameters and substituted during the deployment phase.
+Variables are used by parameters and substituted during the build phase.
 
 ```yaml
 Variables:
@@ -135,7 +135,7 @@ Functions:
 
 ## Secrets
 
-The `Secrets` section lists which KMS keys can be used to decrypt parameter values. The app IAM role will get the `mks:Decrypt` permission to use these keys.
+The `Secrets` section lists which KMS keys can be used to decrypt parameter values. The deployment IAM role will get the `mks:Decrypt` permission to use these keys.
 
 ```yaml
 Secrets:
@@ -150,10 +150,10 @@ Secrets:
 
 ## Parameters
 
-Parameters can be defined inline in plaintext, as secrets, imported from the [AWS Systems Manager Parameter Store](https://aws.amazon.com/systems-manager/features/#Parameter_Store), or generated dynamically. In addition, parameters can be associated to resources, which will grant the λ# app IAM role the requested permissions. Finally, parameters can also be exported to the Parameter Store where they can be read by other applications.
+Parameters can be defined inline in plaintext, as secrets, imported from the [AWS Systems Manager Parameter Store](https://aws.amazon.com/systems-manager/features/#Parameter_Store), or generated dynamically. In addition, parameters can be associated to resources, which will grant the deployment IAM role the requested permissions. Finally, parameters can also be exported to the Parameter Store where they can be read by other applications.
 
 
-Parameters MUST have a `Name` and MAY have a `Description`. The name MUST start with a letter and followed only by letters or digits. Punctuation marks are not allowed. All names are case-sensitive.
+Parameters must have a `Name` and MAY have a `Description`. The name must start with a letter and followed only by letters or digits. Punctuation marks are not allowed. All names are case-sensitive.
 
 The computed values are stored in the `parameters.json` file that is included with every function package, so that they can retrieved during function initialization.
 
@@ -212,7 +212,7 @@ The <tt>Values</tt> section cannot be used in conjunction with the <tt>Resource<
 
 <dt><tt>Secret</tt></dt>
 <dd>
-The <tt>Secret</tt> attribute specifies an encrypted value that is decrypted at runtime by the Lambda function. Note that the required decryption key MUST be specified in the <tt>Secrets</tt> section to grant <tt>kms:Decrypt</tt> to app's IAM role.
+The <tt>Secret</tt> attribute specifies an encrypted value that is decrypted at runtime by the Lambda function. Note that the required decryption key must be specified in the <tt>Secrets</tt> section to grant <tt>kms:Decrypt</tt> to deployment IAM role.
 
 The <tt>Secret</tt> attribute cannot be used in conjunction with a <tt>Resource</tt> section or <tt>Export</tt> attribute.
 
@@ -223,7 +223,7 @@ The <tt>Secret</tt> attribute cannot be used in conjunction with a <tt>Resource<
 
 <dt><tt>Import</tt></dt>
 <dd>
-The <tt>Import</tt> attribute specifies a path to the AWS Systems Manager Parameter Store. At deployment time, the λ# tool imports the value and stores it in the <tt>parameters.json</tt> file. If the value starts with <tt>/</tt>, it will be used as an absolute path. Otherwise, it will be prefixed with <tt>/{{Deployment}}/</tt> to create a deployment-specific path.
+The <tt>Import</tt> attribute specifies a path to the AWS Systems Manager Parameter Store. At build time, the λ# tool imports the value and stores it in the <tt>parameters.json</tt> file. If the value starts with <tt>/</tt>, it will be used as an absolute key path. Otherwise, it will be prefixed with <tt>/{{Tier}}/</tt> to create a tier-specific path.
 
 <i>Required</i>: No. At most one <tt>Value</tt>, <tt>Values</tt>, <tt>Secret</tt>, or <tt>Import</tt> can be specified at a time.
 
@@ -232,7 +232,7 @@ The <tt>Import</tt> attribute specifies a path to the AWS Systems Manager Parame
 
 <dt><tt>Export</tt></dt>
 <dd>
-The <tt>Export</tt> attribute specifies a path to the AWS Systems Manager Parameter Store. When the CloudFormation stack is deployed, the parameter value is published to the parameter store at the export path. If the export path starts with <tt>/</tt>, it will be used as an absolute path. Otherwise the export path is prefixed with <tt>/{{Deployment}}/{{Name}}/</tt> to create a deployment- and app-specific export path.
+The <tt>Export</tt> attribute specifies a path to the AWS Systems Manager Parameter Store. When the CloudFormation stack is deployed, the parameter value is published to the parameter store at the export path. If the export path starts with <tt>/</tt>, it will be used as an absolute path. Otherwise the export path is prefixed with <tt>/{{Tier}}/{{Name}}/</tt> to create a deployment-specific export path.
 
 The <tt>Export</tt> attribute cannot be used in conjunction with the <tt>Secret</tt> attribute.
 
@@ -297,8 +297,7 @@ The <tt>Properties</tt> section specifies additional options that can be specifi
 
 ## Functions
 
-The `Functions` section MAY contain zero or more function definitions. Each definition corresponds to a .NET Core project that is compiled and uploaded for deployment.
-The published Lambda functions are prefixed with `{{Deployment}}-{{Name}}.` to uniquely distinguish from other published functions.
+The `Functions` section may contain zero or more function definitions. Each definition corresponds to a .NET Core project that is compiled and uploaded for deployment. The published Lambda functions are prefixed with `{{Tier}}-{{Deployment}}.` to uniquely distinguish them from other published functions.
 
 ```yaml
 Name: String
@@ -327,7 +326,7 @@ The <tt>Name</tt> attribute specifies the function name used to publish the Lamb
 
 <dt><tt>Description</tt></dt>
 <dd>
-The <tt>Description</tt> attribute value is used as part of the Lambda function deployment.
+The <tt>Description</tt> attribute value is used by the AWS Lambda function.
 
 <i>Required</i>: No
 

@@ -4,7 +4,7 @@
 
 Before you begin, make sure to [setup your λ# environment](../../Bootstrap/).
 
-## Deployment
+## Deployment File
 
 Creating a function that is invoked by an SNS topics requires two steps. First, the SNS topic must either be created or referenced in the `Parameters` section. Second, the function must reference the parameter name in its `Sources` section using the `Topic` attribute.
 
@@ -13,7 +13,7 @@ Lambda functions require the `sns:Subscribe` permission on the SNS topic. Either
 ```yaml
 Name: SnsSample
 
-Description: A sample app using an SNS topic
+Description: A sample deployment using an SNS topic
 
 Parameters:
 

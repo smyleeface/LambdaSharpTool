@@ -1,6 +1,6 @@
 Name: S3Sample
 
-Description: A sample app integrating with S3 Bucket events
+Description: A sample deployment integrating with S3 Bucket events
 
 Parameters:
 

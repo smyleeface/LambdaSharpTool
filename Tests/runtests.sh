@@ -1,5 +1,5 @@
 dotnet run -p $LAMBDASHARP/src/MindTouch.LambdaSharp.Tool/MindTouch.LambdaSharp.Tool.csproj -- info \
-    --deployment test \
+    --tier test \
     --aws-account-id 123456789012 \
     --aws-region us-east-1 \
     --deployment-bucket-name lambdsharp-bucket-name \
@@ -10,7 +10,7 @@ dotnet run -p $LAMBDASHARP/src/MindTouch.LambdaSharp.Tool/MindTouch.LambdaSharp.
 
 lash() {
     dotnet run -p $LAMBDASHARP/src/MindTouch.LambdaSharp.Tool/MindTouch.LambdaSharp.Tool.csproj -- deploy \
-        --deployment test \
+        --tier TestTier \
         --output $1-CF.json \
         --dryrun:cloudformation \
         --bootstrap \

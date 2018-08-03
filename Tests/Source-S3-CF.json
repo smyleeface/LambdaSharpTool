@@ -5,7 +5,7 @@
     "Bucket": {
       "Type": "AWS::S3::Bucket",
       "Properties": {
-        "BucketName": "test-test-bucket-314ce33",
+        "BucketName": "testtier-testdeployment-bucket-fdc7574",
         "NotificationConfiguration": {
           "LambdaConfigurations": [
             {
@@ -62,8 +62,8 @@
       "Type": "Custom::LambdaSharpRollbarProject",
       "Properties": {
         "ServiceToken": "arn:aws:sns:us-east-1:123456789012:LambdaSharpRollbar-RollbarCustomResourceTopic",
-        "Project": "Test",
-        "Deployment": "test"
+        "Project": "TestDeployment",
+        "Tier": "TestTier"
       }
     },
     "AppRole": {
@@ -128,8 +128,8 @@
                     "s3:RestoreObject"
                   ],
                   "Resource": [
-                    "arn:aws:s3:::test-test-bucket-314ce33",
-                    "arn:aws:s3:::test-test-bucket-314ce33/*"
+                    "arn:aws:s3:::testtier-testdeployment-bucket-fdc7574",
+                    "arn:aws:s3:::testtier-testdeployment-bucket-fdc7574/*"
                   ]
                 },
                 {
@@ -141,7 +141,7 @@
                 }
               ]
             },
-            "PolicyName": "test-Test-policy"
+            "PolicyName": "TestTier-TestDeployment-policy"
           }
         ]
       }
@@ -151,19 +151,19 @@
       "Properties": {
         "Code": {
           "S3Bucket": "lambdsharp-bucket-name",
-          "S3Key": "test/Test/Test.Function-NOCOMPILE.zip"
+          "S3Key": "TestDeployment/TestDeployment.Function-NOCOMPILE.zip"
         },
         "DeadLetterConfig": {
           "TargetArn": "arn:aws:sqs:us-east-1:123456789012:LambdaSharp-DeadLetterQueue"
         },
         "Environment": {
           "Variables": {
-            "DEPLOYMENT": "test",
-            "APPNAME": "Test",
-            "STACKNAME": "test-Test",
+            "TIER": "TestTier",
+            "APPNAME": "TestDeployment",
+            "STACKNAME": "TestTier-TestDeployment",
             "DEADLETTERQUEUE": "https://sqs.us-east-1.amazonaws.com/123456789012/LambdaSharp-DeadLetterQueue",
             "LAMBDARUNTIME": "dotnetcore2.1",
-            "STACK_BUCKET": "test-test-bucket-314ce33",
+            "STACK_BUCKET": "testtier-testdeployment-bucket-fdc7574",
             "STACK_ROLLBARTOKEN": {
               "Fn::GetAtt": [
                 "RollbarToken",
@@ -172,8 +172,8 @@
             }
           }
         },
-        "FunctionName": "test-Test-Function",
-        "Handler": "Test.Function::MindTouch.LambdaSharpTest.Function.Function::FunctionHandlerAsync",
+        "FunctionName": "TestTier-TestDeployment-Function",
+        "Handler": "TestDeployment.Function::MindTouch.LambdaSharpTestDeployment.Function.Function::FunctionHandlerAsync",
         "MemorySize": "128",
         "Role": {
           "Fn::GetAtt": [
@@ -184,12 +184,12 @@
         "Runtime": "dotnetcore2.1",
         "Tags": [
           {
-            "Key": "lambdasharp:deployment",
-            "Value": "test"
+            "Key": "lambdasharp:tier",
+            "Value": "TestTier"
           },
           {
-            "Key": "lambdasharp:app",
-            "Value": "Test"
+            "Key": "lambdasharp:deployment",
+            "Value": "TestDeployment"
           }
         ],
         "Timeout": "30"
@@ -207,7 +207,7 @@
         },
         "Principal": "s3.amazonaws.com",
         "SourceAccount": "123456789012",
-        "SourceArn": "arn:aws:s3:::test-test-bucket-314ce33"
+        "SourceArn": "arn:aws:s3:::testtier-testdeployment-bucket-fdc7574"
       }
     }
   }
