@@ -65,12 +65,16 @@ lash deploy Deploy.yml
 <dd>(test only) Override AWS account Id (default: read from AWS profile)</dd>
 <dt><tt>--aws-region &lt;NAME&gt;</tt></dt>
 <dd>(test only) Override AWS region (default: read from AWS profile)</dd>
+<dt><tt>--deployment-version &lt;VERSION&gt;</tt></dt>
+<dd>(test only) LambdaSharp environment version for deployment tier (default: read from LambdaSharp configuration)</dd>
 <dt><tt>--deployment-bucket-name &lt;NAME&gt;</tt></dt>
 <dd>(test only) S3 Bucket used to deploying assets (default: read from LambdaSharp configuration)</dd>
 <dt><tt>--deployment-deadletter-queue-url &lt;URL&gt;</tt></dt>
 <dd>(test only) SQS Deadletter queue used by function (default: read from LambdaSharp configuration)</dd>
+<dt><tt>--deployment-logging-topic-arn &lt;ARN&gt;</tt></dt>
+<dd>(test only) SNS topic used by LambdaSharp functions to log warnings and errors (default: read from LambdaSharp configuration)</dd>
 <dt><tt>--deployment-notification-topic-arn &lt;ARN&gt;</tt></dt>
-<dd>(test only) SNS Topic used by CloudFormation deploymetions (default: read from LambdaSharp configuration)</dd>
+<dd>(test only) SNS Topic used by CloudFormation deployments (default: read from LambdaSharp configuration)</dd>
 <dt><tt>--bootstrap</tt></dt>
 <dd>(bootstrap only) Don't read LambdaSharp initialization values</dd>
 </dl>
@@ -99,6 +103,7 @@ Deployment tier: Demo
 Git SHA: 8ec32d267a1fef38e8e133d8ee19cf857d3a0911
 AWS Region: us-east-1
 AWS Account Id: 123456789012
+LambdaSharp Environment Version: 0.2
 LambdaSharp S3 Bucket: demo-lambdasharp-deploymentbucket
 LambdaSharp Dead-Letter Queue: https://sqs.us-east-1.amazonaws.com/Demo-LambdaSharp-DeadLetterQueue
 LambdaSharp Logging Topic: arn:aws:sns:us-east-1:123456789012:Demo-LambdaSharp-LoggingTopic
@@ -121,12 +126,16 @@ LambdaSharp Rollbar Custom Resource Topic: arn:aws:sns:us-east-1:123456789012:La
 <dd>(test only) Override AWS account Id (default: read from AWS profile)</dd>
 <dt><tt>--aws-region &lt;NAME&gt;</tt></dt>
 <dd>(test only) Override AWS region (default: read from AWS profile)</dd>
+<dt><tt>--deployment-version &lt;VERSION&gt;</tt></dt>
+<dd>(test only) LambdaSharp environment version for deployment tier (default: read from LambdaSharp configuration)</dd>
 <dt><tt>--deployment-bucket-name &lt;NAME&gt;</tt></dt>
 <dd>(test only) S3 Bucket used to deploying assets (default: read from LambdaSharp configuration)</dd>
 <dt><tt>--deployment-deadletter-queue-url &lt;URL&gt;</tt></dt>
 <dd>(test only) SQS Deadletter queue used by function (default: read from LambdaSharp configuration)</dd>
+<dt><tt>--deployment-logging-topic-arn &lt;ARN&gt;</tt></dt>
+<dd>(test only) SNS topic used by LambdaSharp functions to log warnings and errors (default: read from LambdaSharp configuration)</dd>
 <dt><tt>--deployment-notification-topic-arn &lt;ARN&gt;</tt></dt>
-<dd>(test only) SNS Topic used by CloudFormation deploymetions (default: read from LambdaSharp configuration)</dd>
+<dd>(test only) SNS Topic used by CloudFormation deployments (default: read from LambdaSharp configuration)</dd>
 <dt><tt>--bootstrap</tt></dt>
 <dd>(bootstrap only) Don't read LambdaSharp initialization values</dd>
 </dl>
