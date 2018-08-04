@@ -21,7 +21,6 @@ CloudFormation stacks created by the λ# tool have termination protection enable
 ```
 > lash deploy --tier Demo
 MindTouch LambdaSharp Tool - Deploy LambdaSharp module
-Retrieving LambdaSharp settings for deployment tier `Demo'
 Loading 'Deploy.yml'
 Pre-processing
 Analyzing
@@ -96,7 +95,6 @@ The following settings are read from AWS Systems Manager Parameter Store:
 ```
 > lash info --tier Demo
 MindTouch LambdaSharp Tool - Show LambdaSharp settings
-Retrieving LambdaSharp settings for deployment tier `Demo'
 Deployment tier: Demo
 Git SHA: 8ec32d267a1fef38e8e133d8ee19cf857d3a0911
 AWS Region: us-east-1

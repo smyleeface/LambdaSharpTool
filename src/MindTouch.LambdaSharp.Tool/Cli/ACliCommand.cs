@@ -140,7 +140,6 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                     || (deploymentRollbarCustomResourceTopicArn == null)
                     || (deploymentS3PackageLoaderCustomResourceTopicArn == null)
                 ) {
-                    Console.WriteLine($"Retrieving LambdaSharp settings for deployment tier `{tier}'");
 
                     // import lambdasharp parameters
                     var lambdaSharpPath = $"/{tier}/LambdaSharp/";
