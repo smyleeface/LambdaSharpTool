@@ -1,7 +1,5 @@
 ![λ#](../../Docs/LambdaSharp_v2_small.png)
 
-> * how API gateway stages are auto-deployed
-
 # LambdaSharp API Gateway Function
 
 Before you begin, make sure to [setup your λ# environment](../../Bootstrap/).

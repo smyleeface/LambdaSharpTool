@@ -75,6 +75,7 @@ public class Function : ALambdaFunction<SQSEvent> {
     }
 }
 ```
+
 ## Reference
 
 Up to 10 messages can be retrieved at a time from an SQS queue. Depending on the throughput needs, AWS Lambda will instantiate more function invocations to process all messages in the queue. Note that the Lambda function `Timeout` attribute and SQS queue `VisibilityTimeout` property are related. The CloudFormation stack deployment fails when the Lambda timeout is greater than the queue visibility timeout.
