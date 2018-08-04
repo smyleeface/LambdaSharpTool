@@ -42,6 +42,11 @@ namespace MindTouch.LambdaSharpRollbar.ResourceHandler {
         //--- Properties ---
         public string Tier { get; set; }
         public string Module { get; set; }
+
+        // NOTE (2018-08-04, bjorg): these properties are only used for backwards compatibility; 
+        // without them older CloudFormation stacks would be unable to properly clean-up
+        public string Deployment { get; set; }
+        public string Project { get; set; }
     }
 
     public class ResponseProperties {
@@ -81,16 +86,17 @@ namespace MindTouch.LambdaSharpRollbar.ResourceHandler {
         }
 
         protected async override Task<Response<ResponseProperties>> HandleCreateResourceAsync(Request<RequestProperties> request) {
-            var tier = request?.ResourceProperties?.Tier;
+            var tier = request?.ResourceProperties?.Tier ?? request?.ResourceProperties?.Deployment;
             if(tier == null) {
                 throw new ArgumentNullException(nameof(request.ResourceProperties.Tier));
             }
-            if(request?.ResourceProperties?.Module == null) {
+            var module = request?.ResourceProperties?.Module ?? request?.ResourceProperties?.Project;
+            if(module == null) {
                 throw new ArgumentNullException(nameof(request.ResourceProperties.Module));
             }
 
             // create new rollbar project
-            var name = $"{tier}-{request.ResourceProperties.Module}";
+            var name = $"{tier}-{module}";
             var project = await CreateProject(name);
             var tokens = await ListProjectTokens(project.Id);
             var token = tokens.First(t => t.Name == "post_server_item").AccessToken;
@@ -104,16 +110,17 @@ namespace MindTouch.LambdaSharpRollbar.ResourceHandler {
         }
 
         protected async override Task<Response<ResponseProperties>> HandleUpdateResourceAsync(Request<RequestProperties> request) {
-            var tier = request?.ResourceProperties?.Tier;
+            var tier = request?.ResourceProperties?.Tier ?? request?.ResourceProperties?.Deployment;
             if(tier == null) {
                 throw new ArgumentNullException(nameof(request.ResourceProperties.Tier));
             }
-            if(request?.ResourceProperties?.Module == null) {
+            var module = request?.ResourceProperties?.Module ?? request?.ResourceProperties?.Project;
+            if(module == null) {
                 throw new ArgumentNullException(nameof(request.ResourceProperties.Module));
             }
 
             // if name is same then nothing has changed
-            var name = $"{tier}-{request.ResourceProperties.Module}";
+            var name = $"{tier}-{module}";
             var projectId = FromPhysicalResourceId(request.PhysicalResourceId);
             var project = await GetProject(projectId);
             if(project.Name == name) {
