@@ -232,7 +232,7 @@ The <tt>Import</tt> attribute specifies a path to the AWS Systems Manager Parame
 
 <dt><tt>Export</tt></dt>
 <dd>
-The <tt>Export</tt> attribute specifies a path to the AWS Systems Manager Parameter Store. When the CloudFormation stack is deployed, the parameter value is published to the parameter store at the export path. If the export path starts with <tt>/</tt>, it will be used as an absolute path. Otherwise the export path is prefixed with <tt>/{{Tier}}/{{Name}}/</tt> to create an export path specific to the deployment tier.
+The <tt>Export</tt> attribute specifies a path to the AWS Systems Manager Parameter Store. When the CloudFormation stack is deployed, the parameter value is published to the parameter store at the export path. If the export path starts with <tt>/</tt>, it will be used as an absolute path. Otherwise the export path is prefixed with <tt>/{{Tier}}/{{Module}}/</tt> to create an export path specific to the deployment tier.
 
 The <tt>Export</tt> attribute cannot be used in conjunction with the <tt>Secret</tt> attribute.
 
@@ -356,7 +356,7 @@ The <tt>Timeout</tt> attribute specifies the execution time limit in seconds. Th
 <dd>
 The <tt>Project</tt> attribute specifies the relative path of the .NET Core project file location for the lambda function.
 
-<i>Required</i>: Conditional. By default, the .NET Core project file is expected to be located in a sub-folder of the module file, following this naming convention: <code>{{Name}}.{{FunctionName}}/{{Name}}.{{FunctionName}}.csproj</code>. If that is not the case, then the <tt>Project</tt> attribute must be specified. Otherwise, it can be omitted.
+<i>Required</i>: Conditional. By default, the .NET Core project file is expected to be located in a sub-folder of the module file, following this naming convention: <code>{{Module}}.{{FunctionName}}/{{Module}}.{{FunctionName}}.csproj</code>. If that is not the case, then the <tt>Project</tt> attribute must be specified. Otherwise, it can be omitted.
 
 <i>Type</i>: String
 </dd>
@@ -365,7 +365,7 @@ The <tt>Project</tt> attribute specifies the relative path of the .NET Core proj
 <dd>
 The <tt>Handler</tt> attribute specifies the fully qualified .NET Core method reference to the Lambda function handler.
 
-<i>Required</i>: Conditional. By default, the .NET Core method reference is expected to be <code>{{Name}}.{{FunctionName}}::{{Namespace}}.Function::FunctionHandlerAsync</code> where <tt>{{Namespace}}</tt> is determined by inspecting the <tt>&lt;RootNamespace&gt;</tt> element of the .NET Core project file. If the Lambda function handler is not called <tt>FunctionHandlerAsync</tt>, or the class implemented it is not called <tt>Function</tt>, or the <tt>&lt;RootNamespace&gt;</tt> is not specified in the .NET Core project file, or the .NET Core assembly name is not <tt>{{Name}}.{{FunctionName}}</tt>, the the <tt>Handler</tt> attribute must be specified. Otherwise, it can be omitted.
+<i>Required</i>: Conditional. By default, the .NET Core method reference is expected to be <code>{{Module}}.{{FunctionName}}::{{Namespace}}.Function::FunctionHandlerAsync</code> where <tt>{{Namespace}}</tt> is determined by inspecting the <tt>&lt;RootNamespace&gt;</tt> element of the .NET Core project file. If the Lambda function handler is not called <tt>FunctionHandlerAsync</tt>, or the class implemented it is not called <tt>Function</tt>, or the <tt>&lt;RootNamespace&gt;</tt> is not specified in the .NET Core project file, or the .NET Core assembly name is not <tt>{{Module}}.{{FunctionName}}</tt>, the the <tt>Handler</tt> attribute must be specified. Otherwise, it can be omitted.
 
 <i>Type</i>: String
 </dd>
