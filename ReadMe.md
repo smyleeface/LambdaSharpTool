@@ -2,14 +2,16 @@
 
 # LambdaSharp Tool & Framework (Beta)
 
-The objectives of λ# is to accelerate the innovation velocity of serverless solutions. Developers should be able to focus on solving business problems while deploying scalable, observable solutions that follow DevOps best practices.
+The objective of λ# is to accelerate the innovation velocity of serverless solutions. Developers should be able to focus on solving business problems while deploying scalable, observable solutions that follow DevOps best practices.
 
-λ# is a .NET Core 2.x framework and tooling for rapid application development, deployment, and management of [AWS Lambda](https://aws.amazon.com/lambda/) functions and serverless infrastructure. Resources are automatically converted into parameters for easy access by AWS Lambda functions written in C#. Furthermore, λ# apps are composed by exchanging resource references using the [AWS Systems Manager Parameter Store](https://aws.amazon.com/systems-manager/features/).
+λ# is a .NET Core 2.x framework and tooling for rapid application development, deployment, and management of [AWS Lambda](https://aws.amazon.com/lambda/) functions and serverless infrastructure. Resources are automatically converted into parameters for easy access by AWS Lambda C# functions. Furthermore, λ# apps are composed by exchanging resource references using the [AWS Systems Manager Parameter Store](https://aws.amazon.com/systems-manager/features/).
 
 When creating a λ# deployment, you only need to worry about three files:
 * The AWS Lambda C# code
 * The .NET Core project file
 * The λ# deployment file
+
+__Example__
 
 The following AWS Lambda function listens to a [Slack](https://slack.com) command request and responds with a simple message. `ASlackCommandFunction` is one of several base classes that can be used to create lambda functions easily and quickly.
 
@@ -28,7 +30,7 @@ namespace GettingStarted.SlackCommand {
 }
 ```
 
-The λ# deployment tool uses a YAML file to compile, upload, and deploy the CloudFormation stack all in one step. The YAML file describes the entire deployment: its parameters, resources, and functions.
+The λ# deployment tool uses a YAML file to compile the C# projects, upload assets, and deploy the CloudFormation stack in one step. The YAML file describes the entire deployment including the parameters, resources, and functions.
 
 ```yaml
 Name: GettingStarted

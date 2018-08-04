@@ -14,7 +14,7 @@ git clone https://github.com/LambdaSharp/LambdaSharpTool.git
 
 Define the `LAMBDASHARP` environment variable to point to the folder of the `LambdaSharpTool` clone. Furthermore, define `lash` as alias to invoke the λ# tool. The following script assumes the λ# tool was cloned into the `/Repos/LambdaSharpTool` directory.
 
-Using PowerShell:
+__Using PowerShell:__
 ```powershell
 New-Variable -Name LAMBDASHARP -Value \Repos\LambdaSharpTool
 function lash { 
@@ -22,7 +22,7 @@ function lash {
 }
 ```
 
-Using Bash:
+__Using Bash:__
 ```bash
 export LAMBDASHARP=/Repos/LambdaSharpTool
 alias lash="dotnet run -p $LAMBDASHARP/src/MindTouch.LambdaSharp.Tool/MindTouch.LambdaSharp.Tool.csproj --"
@@ -66,30 +66,7 @@ lash deploy \
     $LAMBDASHARP/Bootstrap/LambdaSharp/Deploy.yml
 ```
 
-## 3) λ# Rollbar Integration (optional)
-
-λ# can optionally integrate with [Rollbar](https://rollbar.com). Rollbar is a service for capturing errors and warnings in apps. When the Rollbar integration is used, a Rollbar project will be created for each deployment and all functions within the stack will automatically report any errors that occur to that project.
-
-To prepare the Rollbar integration, you will need to obtain the `read` and `write` access tokens from your Rollbar account under _Account Access Tokens_:
-
-In addition, create a `{{DevEnv}}-LambdaSharpRollbar` project that will be used to track any errors for the Rollbar integration. Under _Project Access Tokens_ make a copy of the `post_server_item`.
-
-Encrypt all three values using a KMS key (e.g. `developer-secrets-key`) and edit your `Deploy.yml` file as follows:
-1. Under `RollbarToken`, paste the encrypted `post_server_item` value. This parameter is used by the Rollbar integration to post any errors that occur.
-1. Under `ReadAccessToken`, paste the encrypted `read` access token. This parameter is used by the Rollbar integration to query the Rollbar account.
-1. Under `WriteAccessToken`, paste the encrypted `write` access token. This parameter is used by the Rollbar integration to create new or delete old Rollbar projects.
-
-Finally, under `Secrets`, list the alias of the encryption key that was used (e.g. `developer-secrets-key`).
-
-Now you are ready to deploy your Rollbar integration. The following command deploys the custom resource handler for Rollbar. Once deployed, all subsequent λ# deployments will be assigned a dedicated Rollbar project for monitoring.
-
-```bash
-lash deploy \
-    --devenv Demo \
-    $LAMBDASHARP/Bootstrap/LambdaSharpRollbar/Deploy.yml
-```
-
-## 4) λ# S3 Package Loader (recommended)
+## 3) λ# S3 Package Loader
 
 λ# includes an AWS Custom Resource handler to deploy packages to S3 Buckets as part of the deployment process. The following command deploys the custom resource handler. Once deployed, all subsequent λ# deployments can create and deploy packages to S3 buckets.
 

@@ -88,7 +88,7 @@ The `Variables` sections is an optional mapping of key-value pairs. Variables ar
 
 The following variables are implicitly defined and can be used in text values to dynamically compute the correct value.
 * `{{DevEnv}}`: the name of the active development environment
-* `{{Deployment}}`: the name of the deployment
+* `{{Deployment}}`: the name of the λ# deployment
 * `{{AwsAccountId}}`: the AWS account ID
 * `{{AwsRegion}}`: the AWS region
 * `{{GitSha}}`: Git SHA (40 characters)
