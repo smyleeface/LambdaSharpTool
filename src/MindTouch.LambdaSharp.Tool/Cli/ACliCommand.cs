@@ -46,6 +46,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
             var gitShaOption = cmd.Option("--gitsha <VALUE>", "(optional) GitSha of most recent git commit (default: invoke `git rev-parse HEAD` command)", CommandOptionType.SingleValue);
             var awsAccountIdOption = cmd.Option("--aws-account-id <VALUE>", "(test only) Override AWS account Id (default: read from AWS profile)", CommandOptionType.SingleValue);
             var awsRegionOption = cmd.Option("--aws-region <NAME>", "(test only) Override AWS region (default: read from AWS profile)", CommandOptionType.SingleValue);
+            var deploymentVersionOption = cmd.Option("--deployment-version <VERSION>", "(test only) LambdaSharp environment version for deployment tier (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
             var deploymentBucketNameOption = cmd.Option("--deployment-bucket-name <NAME>", "(test only) S3 Bucket used to deploying assets (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
             var deploymentDeadletterQueueUrlOption = cmd.Option("--deployment-deadletter-queue-url <URL>", "(test only) SQS Deadletter queue used by function (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
             var deploymentLoggingTopicArnOption = cmd.Option("--deployment-logging-topic-arn <ARN>", "(test only) SNS topic used by LambdaSharp functions to log warnings and errors (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
@@ -124,6 +125,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                 var s3Client = new AmazonS3Client();
 
                 // initialize LambdaSharp deployment values
+                var deploymentVersion = deploymentVersionOption.Value();
                 var deploymentBucketName = deploymentBucketNameOption.Value();
                 var deploymentDeadletterQueueUrl = deploymentDeadletterQueueUrlOption.Value();
                 var deploymentLoggingTopicArn = deploymentLoggingTopicArnOption.Value();
@@ -133,7 +135,8 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                 if(bootstrap) {
                     Console.WriteLine($"Bootstrapping LambdaSharp for `{tier}'");
                 } else if(
-                    (deploymentBucketName == null)
+                    (deploymentVersion == null)
+                    || (deploymentBucketName == null)
                     || (deploymentDeadletterQueueUrl == null)
                     || (deploymentLoggingTopicArn == null)
                     || (deploymentNotificationTopicArn == null)
@@ -144,6 +147,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                     // import lambdasharp parameters
                     var lambdaSharpPath = $"/{tier}/LambdaSharp/";
                     var lambdaSharpSettings = await ssmClient.GetAllParametersByPathAsync(lambdaSharpPath);
+                    deploymentVersion = deploymentVersion ?? GetLambdaSharpSetting("Version");
                     deploymentBucketName = deploymentBucketName ?? GetLambdaSharpSetting("DeploymentBucket");
                     deploymentDeadletterQueueUrl = deploymentDeadletterQueueUrl ?? GetLambdaSharpSetting("DeadLetterQueue");
                     deploymentLoggingTopicArn = deploymentLoggingTopicArn ?? GetLambdaSharpSetting("LoggingTopic");
@@ -161,7 +165,9 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                         return result.Value;
                     }
                 }
+
                 return new Settings {
+                    Version = (deploymentVersion != null) ? new Version(deploymentVersion) : null,
                     Tier = tier,
                     GitSha = gitSha,
                     AwsRegion = awsRegion,

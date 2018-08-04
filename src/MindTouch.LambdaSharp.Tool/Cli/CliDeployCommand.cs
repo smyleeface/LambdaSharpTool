@@ -53,6 +53,16 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                         return;
                     }
                     var validated = true;
+                    if(settings.Version == null) {
+                        AddError("unable to determine the LambdaSharp Environment Version");
+                        validated = false;
+                    } else if(
+                        (settings.Version.Major != _version.Major) 
+                        || (settings.Version.Minor != _version.Minor)
+                    ) {
+                        AddError("LambdaSharp Tool and Environment Versions do not match");
+                        validated = false;
+                    }
                     if(settings.BucketName == null) {
                         AddError("unable to determine the LambdaSharp S3 Bucket");
                         validated = false;
@@ -115,7 +125,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                 AddError($"could not find '{settings.ModuleFileName}'");
                 return;
             }
-            Console.WriteLine($"Processing: {Path.Combine(settings.WorkingDirectory, inputFile)}");
+            Console.WriteLine($"Processing module: {Path.Combine(settings.WorkingDirectory, inputFile)}");
             var source = await File.ReadAllTextAsync(settings.ModuleFileName);
 
             // preprocess file

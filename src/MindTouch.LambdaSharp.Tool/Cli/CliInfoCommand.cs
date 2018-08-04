@@ -50,6 +50,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
             Console.WriteLine($"Git SHA: {settings.GitSha ?? "<NOT SET>"}");
             Console.WriteLine($"AWS Region: {settings.AwsRegion ?? "<NOT SET>"}");
             Console.WriteLine($"AWS Account Id: {settings.AwsAccountId ?? "<NOT SET>"}");
+            Console.WriteLine($"LambdaSharp Environment Version: {settings.Version?.ToString() ?? "<NOT SET>"}");
             Console.WriteLine($"LambdaSharp S3 Bucket: {settings.BucketName ?? "<NOT SET>"}");
             Console.WriteLine($"LambdaSharp Dead-Letter Queue: {settings.DeadLetterQueueUrl ?? "<NOT SET>"}");
             Console.WriteLine($"LambdaSharp Logging Topic: {settings.LoggingTopicArn ?? "<NOT SET>"}");
