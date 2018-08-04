@@ -11,3 +11,6 @@ cloudformation.json
 
 # Nuget packages
 *.nupkg
+
+# Misc
+.sandbox
