@@ -2,7 +2,7 @@
 
 # LambdaSharp Folder Structure
 
-λ# apps must follow a consistent folder organization. The root folder must contain the `Deploy.yml` file. Each function listed in the `Deploy.yml` must have a corresponding folder the naming convention `{AppName}.{FunctionName}`. The .NET Core projects file (`.csproj`) for each function should be contained within said sub-folder and be named with the same naming convention. (e.g. `{AppName}.{FunctionName}.csproj`).
+λ# modules must follow a consistent folder organization. The root folder must contain the `Deploy.yml` file. Each function listed in the `Deploy.yml` must have a corresponding folder the naming convention `{AppName}.{FunctionName}`. The .NET Core projects file (`.csproj`) for each function should be contained within said sub-folder and be named with the same naming convention. (e.g. `{AppName}.{FunctionName}.csproj`).
 
 * `GettingStarted`
   * `Deploy.yml`
