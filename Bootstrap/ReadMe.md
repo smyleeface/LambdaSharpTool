@@ -68,7 +68,7 @@ lash deploy \
 
 ## 3) λ# S3 Package Loader
 
-λ# includes an AWS Custom Resource handler to deploy packages to S3 Buckets as part of the deployment process. The following command deploys the custom resource handler. Once deployed, all subsequent λ# deployments can create and deploy packages to S3 buckets.
+λ# includes an AWS Custom Resource handler to upload files to S3 Buckets as part of the deployment process. The following command deploys the custom resource handler. Once deployed, all subsequent λ# deployments can create and deploy packages to S3 buckets.
 
 ```bash
 lash deploy \
