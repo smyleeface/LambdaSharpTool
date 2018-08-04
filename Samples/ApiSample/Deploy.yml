@@ -1,6 +1,6 @@
 Name: ApiSample
 
-Description: A sample deployment integrating with API Gateway
+Description: A sample module integrating with API Gateway
 
 Functions:
   - Name: MyFunction

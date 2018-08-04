@@ -21,17 +21,16 @@
 
 using System.Collections.Generic;
 
-namespace MindTouch.LambdaSharp.Tool.Model
-{
+namespace MindTouch.LambdaSharp.Tool.Model.AST {
 
-    public class Deployment {
+    public class ModuleNode {
 
         //--- Properties ---
+        public string Version { get; set; }
         public string Name { get; set; }
-        public Settings Settings { get; set; }
         public string Description { get; set; }
         public IList<string> Secrets { get; set; }
-        public IList<AParameter> Parameters { get; set; }
-        public IList<Function> Functions { get; set; }
+        public IList<ParameterNode> Parameters { get; set; }
+        public IList<FunctionNode> Functions { get; set; }
     }
 }

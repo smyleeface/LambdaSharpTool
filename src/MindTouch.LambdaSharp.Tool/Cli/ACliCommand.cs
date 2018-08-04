@@ -50,11 +50,11 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
             var deploymentDeadletterQueueUrlOption = cmd.Option("--deployment-deadletter-queue-url <URL>", "(test only) SQS Deadletter queue used by function (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
             var deploymentLoggingTopicArnOption = cmd.Option("--deployment-logging-topic-arn <ARN>", "(test only) SNS topic used by LambdaSharp functions to log warnings and errors (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
             var deploymentNotificationTopicArnOption = cmd.Option("--deployment-notification-topic-arn <ARN>", "(test only) SNS Topic used by CloudFormation deploymetions (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
-            var boostrapOption = cmd.Option("--bootstrap", "(boostrap only) Don't read LambdaSharp initialization values", CommandOptionType.NoValue);
             var deploymentRollbarCustomResourceTopicArnOption = cmd.Option("--deployment-rollbar-customresource-topic-arn <ARN>", "(test only) SNS Topic for creating Rollbar projects (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
             var deploymentS3PackageLoaderCustomResourceTopicArnOption = cmd.Option("--deployment-s3packageloader-customresource-topic-arn <ARN>", "(test only) SNS Topic for synchronizing S3 buckets (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
+            var bootstrapOption = cmd.Option("--bootstrap", "(bootstrap only) Don't read LambdaSharp initialization values", CommandOptionType.NoValue);
             return async () => {
-                var boostrap = boostrapOption.HasValue();
+                var bootstrap = bootstrapOption.HasValue();
 
                 // initialize logging level
                 if(verboseLevelOption.HasValue()) {
@@ -130,7 +130,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                 var deploymentNotificationTopicArn = deploymentNotificationTopicArnOption.Value();
                 var deploymentRollbarCustomResourceTopicArn = deploymentRollbarCustomResourceTopicArnOption.Value();
                 var deploymentS3PackageLoaderCustomResourceTopicArn = deploymentS3PackageLoaderCustomResourceTopicArnOption.Value();
-                if(boostrap) {
+                if(bootstrap) {
                     Console.WriteLine($"Bootstrapping LambdaSharp for `{tier}'");
                 } else if(
                     (deploymentBucketName == null)
@@ -153,7 +153,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                     // Rollbar custom topic is optional, so don't check for null
                     deploymentRollbarCustomResourceTopicArn = deploymentRollbarCustomResourceTopicArn ?? GetLambdaSharpSetting("RollbarCustomResourceTopic");
 
-                    // S3 synchronization topic is optional, so don't check for null
+                    // S3 package loader topic is optional, so don't check for null
                     deploymentS3PackageLoaderCustomResourceTopicArn = deploymentS3PackageLoaderCustomResourceTopicArn ?? GetLambdaSharpSetting("S3PackageLoaderCustomResourceTopic");
 
                     // local functions
@@ -167,10 +167,10 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                     GitSha = gitSha,
                     AwsRegion = awsRegion,
                     AwsAccountId = awsAccountId,
-                    DeploymentBucketName = deploymentBucketName,
+                    BucketName = deploymentBucketName,
                     DeadLetterQueueUrl = deploymentDeadletterQueueUrl,
                     LoggingTopicArn = deploymentLoggingTopicArn,
-                    DeploymentNotificationTopicArn = deploymentNotificationTopicArn,
+                    NotificationTopicArn = deploymentNotificationTopicArn,
                     RollbarCustomResourceTopicArn = deploymentRollbarCustomResourceTopicArn,
                     S3PackageLoaderCustomResourceTopicArn = deploymentS3PackageLoaderCustomResourceTopicArn,
                     ResourceMapping = new ResourceMapping(),

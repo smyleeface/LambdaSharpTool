@@ -39,7 +39,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                     subCmd.Description = "Create new LambdaSharp function";
 
                     // sub-command options
-                    var nameOption = subCmd.Option("--name|-n <VALUE>", "Name of new project with deployment name prefix (e.g. Deployment.Function)", CommandOptionType.SingleValue);
+                    var nameOption = subCmd.Option("--name|-n <VALUE>", "Name of new project with module name prefix (e.g. Module.Function)", CommandOptionType.SingleValue);
                     var namespaceOption = subCmd.Option("--namespace|-ns <VALUE>", "(optional) Root namespace for project (default: same as function name)", CommandOptionType.SingleValue);
                     var directoryOption = subCmd.Option("--working-directory|-wd <VALUE>", "(optional) New function project parent directory (default: current directory)", CommandOptionType.SingleValue);
                     var frameworkOption = subCmd.Option("--framework|-f <VALUE>", "(optional) Target .NET framework (default: 'netcoreapp2.1')", CommandOptionType.SingleValue);

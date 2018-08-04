@@ -1,6 +1,6 @@
 Name: SnsSample
 
-Description: A sample deployment using an SNS topic
+Description: A sample module using an SNS topic
 
 Parameters:
 

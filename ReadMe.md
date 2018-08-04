@@ -6,10 +6,10 @@ The objective of λ# is to accelerate the innovation velocity of serverless solu
 
 λ# is a .NET Core 2.x framework and tooling for rapid application development, deployment, and management of [AWS Lambda](https://aws.amazon.com/lambda/) functions and serverless infrastructure. Resources are automatically converted into parameters for easy access by AWS Lambda C# functions. Furthermore, λ# apps are composed by exchanging resource references using the [AWS Systems Manager Parameter Store](https://aws.amazon.com/systems-manager/features/).
 
-When creating a λ# deployment, you only need to worry about three files:
+When creating a λ# module, you only need to worry about three files:
 * The AWS Lambda C# code
 * The .NET Core project file
-* The λ# deployment file
+* The λ# module file
 
 __Example__
 
@@ -30,12 +30,12 @@ namespace GettingStarted.SlackCommand {
 }
 ```
 
-The λ# deployment tool uses a YAML file to compile the C# projects, upload assets, and deploy the CloudFormation stack in one step. The YAML file describes the entire deployment including the parameters, resources, and functions.
+The λ# deployment tool uses a YAML file to compile the C# projects, upload assets, and deploy the CloudFormation stack in one step. The YAML file describes the entire module including the parameters, resources, and functions.
 
 ```yaml
 Name: GettingStarted
 
-Description: Intro deployment that shows a Slack integration
+Description: Sample module that shows a Slack integration
 
 Functions:
   - Name: SlackCommand
@@ -50,7 +50,7 @@ Functions:
 
 1. [Setup λ# Environment **(required)**](Bootstrap/)
 1. [λ# Samples](Samples/)
-1. [Deployment File Reference](Docs/DeploymentFile.md)
+1. [Module File Reference](Docs/ModuleFile.md)
 1. [Folder Structure Reference](Docs/FolderStructure.md)
 1. [λ# Tool Reference](src/MindTouch.LambdaSharp.Tool/)
 

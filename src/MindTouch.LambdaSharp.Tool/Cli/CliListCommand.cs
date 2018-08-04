@@ -35,7 +35,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
         public void Register(CommandLineApplication app) {
             app.Command("list", cmd => {
                 cmd.HelpOption();
-                cmd.Description = "List LambdaSharp deployments";
+                cmd.Description = "List LambdaSharp modules";
 
                 // command options
                 var tierOption = cmd.Option("--tier|-T <NAME>", "(optional) Name of deployment tier (default: LAMBDASHARPTIER environment variable)", CommandOptionType.SingleValue);
@@ -92,25 +92,25 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
 
             // fetch all stacks
             var prefix = $"{tier}-";
-            var summaries = new List<StackSummary>();
+            var stacks = new List<StackSummary>();
             do {
                 var response = await cfClient.ListStacksAsync(request);
-                summaries.AddRange(response.StackSummaries.Where(summary => summary.StackName.StartsWith(prefix, StringComparison.Ordinal)));
+                stacks.AddRange(response.StackSummaries.Where(summary => summary.StackName.StartsWith(prefix, StringComparison.Ordinal)));
                 request.NextToken = response.NextToken;
             } while(request.NextToken != null);
 
             // sort and format output
-            if(summaries.Any()) {
-                var nameWidth = summaries.Max(summary => summary.StackName.Length) + 4;
-                var statusWidth = summaries.Max(summary => summary.StackStatus.ToString().Length) + 4;
+            if(stacks.Any()) {
+                var moduleNameWidth = stacks.Max(stack => stack.StackName.Length) + 4 - prefix.Length;
+                var statusWidth = stacks.Max(stack => stack.StackStatus.ToString().Length) + 4;
                 Console.WriteLine();
-                Console.WriteLine($"{"STACK NAME".PadRight(nameWidth)}{"STATUS".PadRight(statusWidth)}DATE");
-                foreach(var summary in summaries.Select(summary => new {
-                    StackName = summary.StackName,
-                    StackStatus = summary.StackStatus,
-                    Date = (summary.LastUpdatedTime > summary.CreationTime) ? summary.LastUpdatedTime : summary.CreationTime
+                Console.WriteLine($"{"MODULE".PadRight(moduleNameWidth)}{"STATUS".PadRight(statusWidth)}DATE");
+                foreach(var summary in stacks.Select(stack => new {
+                    ModuleName = stack.StackName.Substring(prefix.Length),
+                    StackStatus = stack.StackStatus,
+                    Date = (stack.LastUpdatedTime > stack.CreationTime) ? stack.LastUpdatedTime : stack.CreationTime
                 }).OrderBy(summary => summary.Date)) {
-                    Console.WriteLine($"{summary.StackName.PadRight(nameWidth)}{("[" + summary.StackStatus + "]").PadRight(statusWidth)}{summary.Date:yyyy-MM-dd HH:mm:ss}");
+                    Console.WriteLine($"{summary.ModuleName.PadRight(moduleNameWidth)}{("[" + summary.StackStatus + "]").PadRight(statusWidth)}{summary.Date:yyyy-MM-dd HH:mm:ss}");
                 }
             } else {
                 Console.WriteLine();

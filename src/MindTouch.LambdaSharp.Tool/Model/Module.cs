@@ -19,23 +19,18 @@
  * limitations under the License.
  */
 
-using System.IO;
-using System.Threading.Tasks;
-using Amazon.Lambda.Core;
-using MindTouch.LambdaSharp;
+using System.Collections.Generic;
 
-// Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
-[assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
+namespace MindTouch.LambdaSharp.Tool.Model {
 
-namespace MindTouch.LambdaSharpTestDeployment.Function {
+    public class Module {
 
-    public class Function : ALambdaFunction {
-
-        //--- Methods ---
-        public override Task InitializeAsync(LambdaConfig config)
-            => Task.CompletedTask;
-
-        public override async Task<object> ProcessMessageStreamAsync(Stream stream, ILambdaContext context)
-            => "Ok";
+        //--- Properties ---
+        public string Name { get; set; }
+        public Settings Settings { get; set; }
+        public string Description { get; set; }
+        public IList<string> Secrets { get; set; }
+        public IList<AParameter> Parameters { get; set; }
+        public IList<Function> Functions { get; set; }
     }
 }

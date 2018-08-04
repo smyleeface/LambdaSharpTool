@@ -44,7 +44,7 @@ Options:
   -?|-h|--help  Show help information
 
 Commands:
-  deploy        Create/Update LambdaSharp deployment
+  deploy        Deploy LambdaSharp module
   info          Show LambdaSharp settings
   new           Create new LambdaSharp asset
 
@@ -53,11 +53,9 @@ Run 'MindTouch.LambdaSharp.Tool [command] --help' for more information about a c
 
 ## 2) λ# Bootstrap
 
-The λ# environment requires an AWS account to be setup for each deployment tier (e.g. `Test`, `Stage`, `Prod`, etc.). λ# deployments can be deployed once the deployment tier has the needed AWS resources.
+The λ# environment requires an AWS account to be setup for each deployment tier (e.g. `Test`, `Stage`, `Prod`, etc.). Once setup, λ# modules can be deployed.
 
-λ# requires some resources to exist to deploy apps. These are created during the bootstrap phase. The following command creates the basic resources needed to deploy lambda functions, such as a the deployment bucket and dead-letter queue.
-
-For the purpose of this tutorial, we use `Demo` as the new deployment tier name. The next step must to be repeated for each deployment tier (e.g. `Test`, `Stage`, `Prod`, etc.).
+The following command creates the AWS resources needed to deploy λ# modules, such as a the deployment bucket and dead-letter queue. For the purpose of this tutorial, we use `Demo` as the new deployment tier name. The next step must to be repeated for each deployment tier (e.g. `Test`, `Stage`, `Prod`, etc.).
 
 ```bash
 lash deploy \
@@ -68,7 +66,7 @@ lash deploy \
 
 ## 3) λ# S3 Package Loader
 
-λ# includes an AWS Custom Resource handler to upload files to S3 Buckets as part of the deployment process. The following command deploys the custom resource handler. Once deployed, all subsequent λ# deployments can create and deploy packages to S3 buckets.
+λ# includes an AWS Custom Resource handler to upload files to S3 Buckets as part of the deployment process. The following command deploys the custom resource handler. Once deployed, all subsequent λ# modules can deploy packages to S3 buckets.
 
 ```bash
 lash deploy \

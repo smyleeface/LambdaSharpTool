@@ -59,7 +59,7 @@ namespace MindTouch.LambdaSharp {
         private bool _initialized;
         private LambdaConfig _appConfig;
         private string _tier;
-        private string _deployment;
+        private string _module;
         private string _stackName;
 
         //--- Constructors ---
@@ -128,12 +128,12 @@ namespace MindTouch.LambdaSharp {
 
             // read bootstrap configuration from environment
             _tier = envSource.Read("TIER");
-            _deployment = envSource.Read("DEPLOYMENT");
+            _module = envSource.Read("MODULE");
             _deadLetterQueueUrl = envSource.Read("DEADLETTERQUEUE");
             _loggingTopic = envSource.Read("LOGGINGTOPIC");
             var framework = envSource.Read("LAMBDARUNTIME");
             LogInfo($"TIER = {_tier}");
-            LogInfo($"DEPLOYMENT = {_deployment}");
+            LogInfo($"MODULE = {_module}");
             LogInfo($"DEADLETTERQUEUE = {_deadLetterQueueUrl ?? "NONE"}");
             LogInfo($"LOGGINGTOPIC = {_loggingTopic ?? "NONE"}");
 
@@ -141,7 +141,7 @@ namespace MindTouch.LambdaSharp {
             var gitsha = File.Exists("gitsha.txt") ? File.ReadAllText("gitsha.txt") : null;
             LogInfo($"GITSHA = {gitsha ?? "NONE"}");
 
-            // read deployment parameter values from parameters file
+            // read module parameter values from parameters file
             var parameters = await ParseParameters("/", File.ReadAllText("parameters.json"));
 
             // create config where environment variables take precedence over those found in the parameter file
@@ -261,8 +261,8 @@ namespace MindTouch.LambdaSharp {
                             ["Tier"] = new MessageAttributeValue {
                                 StringValue = _tier
                             },
-                            ["Deployment"] = new MessageAttributeValue {
-                                StringValue = _deployment
+                            ["Module"] = new MessageAttributeValue {
+                                StringValue = _module
                             }
                         }
                     }).GetAwaiter().GetResult();

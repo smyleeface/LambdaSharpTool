@@ -1,6 +1,6 @@
 Name: SqsSample
 
-Description: A sample deployment using SQS queues
+Description: A sample module using SQS queues
 
 Parameters:
 

@@ -2,7 +2,7 @@
 
 # LambdaSharp Tool
 
-The λ# tool is used to process the deployment file, compile the C# projects, upload their packages to S3, generate a CloudFormation stack, and then create or update it. All operations are done in a single pass to facilitate greater productivity when building new λ# apps. In addition, λ# uses a deterministic build process which enables it to skip updates when no code or configuration changes have occurred since the last deployment operation.
+The λ# tool is used to process the module file, compile the C# projects, upload their packages to S3, generate a CloudFormation stack, and then create or update it. All operations are done in a single pass to facilitate greater productivity when building new λ# apps. In addition, λ# uses a deterministic build process which enables it to skip updates when no code or configuration changes have occurred since the last deployment operation.
 
 Commands:
 
@@ -14,13 +14,13 @@ Commands:
 
 The `deploy` command parses the input file, compiles all included function projects, and deploys the changes to the AWS account.
 
-The default filename for the deployment file is `Deploy.yml` in the current working directory. If the file has a different name or is not in the current directory, it must be specified as an argument on the command line.
+The default filename for the module file is `Deploy.yml` in the current working directory. If the file has a different name or is not in the current directory, it must be specified as an argument on the command line.
 
 CloudFormation stacks created by the λ# tool have termination protection enabled. In addition, subsequent updates cannot delete or replace data resources unless the `--allow-data-loss` option is passed in. This behavior is to reduce the risk of accidental data loss when CloudFormation resources are being accidentally replaced.
 
 ```
 > lash deploy --tier Demo
-MindTouch LambdaSharp Tool - Create/Update LambdaSharp deployment
+MindTouch LambdaSharp Tool - Deploy LambdaSharp module
 Retrieving LambdaSharp settings for deployment tier `Demo'
 Loading 'Deploy.yml'
 Pre-processing
@@ -39,7 +39,7 @@ Deploying stack: Demo-Sample
 
 ### Argument
 
-The path to the YAML deployment file can be optionally specified as an argument. When omitted, the tool will look for a file called `Deploy.yml`.
+The path to the YAML module file can be optionally specified as an argument. When omitted, the tool will look for a file called `Deploy.yml`.
 
 ```
 lash deploy Deploy.yml
@@ -78,7 +78,7 @@ lash deploy Deploy.yml
 
 ## Info Command
 
-The `info` command shows the settings for λ# deployments.
+The `info` command shows the settings for λ# modules.
 
 The following settings are read from AWS Systems Manager Parameter Store:
 <dl>
@@ -87,7 +87,7 @@ The following settings are read from AWS Systems Manager Parameter Store:
 <dt><tt>/{{Tier}}/LambdaSharp/DeploymentBucket</tt></dt>
 <dd>The S3 bucket used by the λ# tool to upload assets.</dd>
 <dt><tt>/{{Tier}}/LambdaSharp/DeploymentNotificationTopic</tt></dt>
-<dd>(optiona) The ARN for an SNS topic that will be used to broadcast stack creation, update, and deletion events.</dd>
+<dd>(optional) The ARN for an SNS topic that will be used to broadcast stack creation, update, and deletion events.</dd>
 <dt><tt>/{{Tier}}/LambdaSharp/RollbarCustomResourceTopic</tt></dt>
 <dd>(optional) The ARN for an SNS topic that will create a Rollbar project and return its tokwn.</dd>
 </dl>
@@ -148,7 +148,7 @@ Created function file: MyApp.MyFunction/Function.cs
 
 <dl>
 <dt><tt>--name|-n &lt;VALUE&gt;</tt></dt>
-<dd>Name of new project (e.g. Deployment.Function)</dd>
+<dd>Name of new project (e.g. Module.Function)</dd>
 <dt><tt>--namespace|-ns &lt;VALUE&gt;</tt></dt>
 <dd>(optional) Root namespace for project (default: same as function name)</dd>
 <dt><tt>--working-directory|-wd &lt;VALUE&gt;</tt></dt>

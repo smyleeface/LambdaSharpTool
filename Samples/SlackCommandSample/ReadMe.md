@@ -4,7 +4,7 @@
 
 Before you begin, make sure to [setup your λ# environment](../../Bootstrap/).
 
-## Deployment File
+## Module File
 
 An invocations schedule is created by adding a `Schedule` source to each function. The schedule can either be directly a [CloudWatch Events schedule expression](https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html) or it can provide an expression and a name. The `Name` attribute is used to distinguish between multiple schedule events when needed.
 
@@ -13,7 +13,7 @@ A [Slack](https://slack.com) command integration is created by adding the `Slack
 ```yaml
 Name: SlackCommandSample
 
-Description: A sample deployment integrating with Slack
+Description: A sample module integrating with Slack
 
 Functions:
   - Name: MyFunction

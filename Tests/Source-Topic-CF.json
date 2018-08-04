@@ -10,11 +10,11 @@
       "Type": "Custom::LambdaSharpRollbarProject",
       "Properties": {
         "ServiceToken": "arn:aws:sns:us-east-1:123456789012:LambdaSharpRollbar-RollbarCustomResourceTopic",
-        "Project": "TestDeployment",
-        "Tier": "Test"
+        "Tier": "Test",
+        "Module": "TestModule"
       }
     },
-    "AppRole": {
+    "ModuleRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
         "AssumeRolePolicyDocument": {
@@ -65,7 +65,7 @@
                 }
               ]
             },
-            "PolicyName": "Test-TestDeployment-policy"
+            "PolicyName": "Test-TestModule-policy"
           }
         ]
       }
@@ -75,7 +75,7 @@
       "Properties": {
         "Code": {
           "S3Bucket": "lambdsharp-bucket-name",
-          "S3Key": "TestDeployment/TestDeployment.Function-NOCOMPILE.zip"
+          "S3Key": "TestModule/TestModule.Function-NOCOMPILE.zip"
         },
         "DeadLetterConfig": {
           "TargetArn": "arn:aws:sqs:us-east-1:123456789012:LambdaSharp-DeadLetterQueue"
@@ -83,7 +83,7 @@
         "Environment": {
           "Variables": {
             "TIER": "Test",
-            "APPNAME": "TestDeployment",
+            "APPNAME": "TestModule",
             "DEADLETTERQUEUE": "https://sqs.us-east-1.amazonaws.com/123456789012/LambdaSharp-DeadLetterQueue",
             "LOGGINGTOPIC": "arn:aws:sns:us-east-1:123456789012:LambdaSharp-LoggingTopic",
             "LAMBDARUNTIME": "dotnetcore2.1",
@@ -98,12 +98,12 @@
             }
           }
         },
-        "FunctionName": "Test-TestDeployment-Function",
-        "Handler": "TestDeployment.Function::MindTouch.LambdaSharpTestDeployment.Function.Function::FunctionHandlerAsync",
+        "FunctionName": "Test-TestModule-Function",
+        "Handler": "TestModule.Function::MindTouch.LambdaSharpTestModule.Function.Function::FunctionHandlerAsync",
         "MemorySize": "128",
         "Role": {
           "Fn::GetAtt": [
-            "AppRole",
+            "ModuleRole",
             "Arn"
           ]
         },
@@ -114,8 +114,8 @@
             "Value": "Test"
           },
           {
-            "Key": "lambdasharp:deployment",
-            "Value": "TestDeployment"
+            "Key": "lambdasharp:module",
+            "Value": "TestModule"
           }
         ],
         "Timeout": "30"
