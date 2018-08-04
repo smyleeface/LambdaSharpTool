@@ -87,7 +87,7 @@ The <tt>Functions</tt> section contains the lambda functions that are part of th
 The `Variables` sections is an optional mapping of key-value pairs. Variables are used in string substitutions to make it easy to change settings in the deployment file.
 
 The following variables are implicitly defined and can be used in text values to dynamically compute the correct value.
-* `{{DevEnv}}`: the name of the active development environment
+* `{{Tier}}`: the name of the active deployment tier
 * `{{Deployment}}`: the name of the λ# deployment
 * `{{AwsAccountId}}`: the AWS account ID
 * `{{AwsRegion}}`: the AWS region
@@ -223,7 +223,7 @@ The <tt>Secret</tt> attribute cannot be used in conjunction with a <tt>Resource<
 
 <dt><tt>Import</tt></dt>
 <dd>
-The <tt>Import</tt> attribute specifies a path to the AWS Systems Manager Parameter Store. At build time, the λ# tool imports the value and stores it in the <tt>parameters.json</tt> file. If the value starts with <tt>/</tt>, it will be used as an absolute key path. Otherwise, it will be prefixed with <tt>/{{DevEnv}}/</tt> to create a development environment specific path.
+The <tt>Import</tt> attribute specifies a path to the AWS Systems Manager Parameter Store. At build time, the λ# tool imports the value and stores it in the <tt>parameters.json</tt> file. If the value starts with <tt>/</tt>, it will be used as an absolute key path. Otherwise, it will be prefixed with <tt>/{{Tier}}/</tt> to create a deployment tier specific path.
 
 <i>Required</i>: No. At most one <tt>Value</tt>, <tt>Values</tt>, <tt>Secret</tt>, or <tt>Import</tt> can be specified at a time.
 
@@ -232,7 +232,7 @@ The <tt>Import</tt> attribute specifies a path to the AWS Systems Manager Parame
 
 <dt><tt>Export</tt></dt>
 <dd>
-The <tt>Export</tt> attribute specifies a path to the AWS Systems Manager Parameter Store. When the CloudFormation stack is deployed, the parameter value is published to the parameter store at the export path. If the export path starts with <tt>/</tt>, it will be used as an absolute path. Otherwise the export path is prefixed with <tt>/{{DevEnv}}/{{Name}}/</tt> to create a deployment-specific export path.
+The <tt>Export</tt> attribute specifies a path to the AWS Systems Manager Parameter Store. When the CloudFormation stack is deployed, the parameter value is published to the parameter store at the export path. If the export path starts with <tt>/</tt>, it will be used as an absolute path. Otherwise the export path is prefixed with <tt>/{{Tier}}/{{Name}}/</tt> to create a deployment-specific export path.
 
 The <tt>Export</tt> attribute cannot be used in conjunction with the <tt>Secret</tt> attribute.
 
@@ -297,7 +297,7 @@ The <tt>Properties</tt> section specifies additional options that can be specifi
 
 ## Functions
 
-The `Functions` section may contain zero or more function definitions. Each definition corresponds to a .NET Core project that is compiled and uploaded for deployment. The published Lambda functions are prefixed with `{{DevEnv}}-{{Deployment}}.` to uniquely distinguish them from other published functions.
+The `Functions` section may contain zero or more function definitions. Each definition corresponds to a .NET Core project that is compiled and uploaded for deployment. The published Lambda functions are prefixed with `{{Tier}}-{{Deployment}}.` to uniquely distinguish them from other published functions.
 
 ```yaml
 Name: String

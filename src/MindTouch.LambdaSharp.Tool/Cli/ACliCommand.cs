@@ -40,7 +40,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
 
         //--- Methods ---
         protected Func<Task<Settings>> CreateSettingsInitializer(CommandLineApplication cmd) {
-            var devEnvOption = cmd.Option("--devenv|-D <NAME>", "(optional) Name of development environment (default: LAMBDASHARPDEVENV environment variable)", CommandOptionType.SingleValue);
+            var tierOption = cmd.Option("--tier|-T <NAME>", "(optional) Name of deployment tier (default: LAMBDASHARPTIER environment variable)", CommandOptionType.SingleValue);
             var awsProfileOption = cmd.Option("--profile|-P <NAME>", "(optional) Use a specific AWS profile from the AWS credentials file", CommandOptionType.SingleValue);
             var verboseLevelOption = cmd.Option("--verbose|-V:<LEVEL>", "(optional) Show verbose output (0=quiet, 1=normal, 2=detailed, 3=exceptions)", CommandOptionType.SingleOrNoValue);
             var gitShaOption = cmd.Option("--gitsha <VALUE>", "(optional) GitSha of most recent git commit (default: invoke `git rev-parse HEAD` command)", CommandOptionType.SingleValue);
@@ -62,14 +62,14 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                     }
                 }
 
-                // initialize development environment value
-                var devEnv = devEnvOption.Value() ?? Environment.GetEnvironmentVariable("LAMBDASHARPDEVENV");
-                if(devEnv == null) {
-                    AddError("missing development environment name");
+                // initialize deployment tier value
+                var tier = tierOption.Value() ?? Environment.GetEnvironmentVariable("LAMBDASHARPTIER");
+                if(tier == null) {
+                    AddError("missing deployment tier name");
                     return null;
                 }
-                if(devEnv == "Default") {
-                    AddError("development environment cannot be 'Default' because it is a reserved name");
+                if(tier == "Default") {
+                    AddError("deployment tier cannot be 'Default' because it is a reserved name");
                     return null;
                 }
 
@@ -129,7 +129,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                 var deploymentRollbarCustomResourceTopicArn = deploymentRollbarCustomResourceTopicArnOption.Value();
                 var deploymentS3PackageLoaderCustomResourceTopicArn = deploymentS3PackageLoaderCustomResourceTopicArnOption.Value();
                 if(boostrap) {
-                    Console.WriteLine($"Bootstrapping LambdaSharp for `{devEnv}'");
+                    Console.WriteLine($"Bootstrapping LambdaSharp for `{tier}'");
                 } else if(
                     (deploymentBucketName == null)
                     || (deploymentDeadletterQueueUrl == null)
@@ -137,10 +137,10 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                     || (deploymentRollbarCustomResourceTopicArn == null)
                     || (deploymentS3PackageLoaderCustomResourceTopicArn == null)
                 ) {
-                    Console.WriteLine($"Retrieving LambdaSharp settings for `{devEnv}'");
+                    Console.WriteLine($"Retrieving LambdaSharp settings for `{tier}'");
 
                     // import lambdasharp parameters
-                    var lambdaSharpPath = $"/{devEnv}/LambdaSharp/";
+                    var lambdaSharpPath = $"/{tier}/LambdaSharp/";
                     var lambdaSharpSettings = await ssmClient.GetAllParametersByPathAsync(lambdaSharpPath);
                     deploymentBucketName = deploymentBucketName ?? GetLambdaSharpSetting("DeploymentBucket");
                     if(deploymentBucketName == null) {
@@ -171,7 +171,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                     }
                 }
                 return new Settings {
-                    DevEnv = devEnv,
+                    Tier = tier,
                     GitSha = gitSha,
                     AwsRegion = awsRegion,
                     AwsAccountId = awsAccountId,

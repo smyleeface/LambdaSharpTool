@@ -58,10 +58,10 @@ namespace MindTouch.LambdaSharp.Tool.Internal {
         //--- Methods ---
         public async Task<bool> Deploy(Deployment deployment, string template, bool allowDataLoss) {
             if(deployment.Functions.Any() && (deployment.Settings.DeploymentBucketName == null)) {
-                deployment.Settings.AddError($"cannot deploy functions without '/{deployment.Settings.DevEnv}/LambdaSharp/DeploymentBucket' being set");
+                deployment.Settings.AddError($"cannot deploy functions without '/{deployment.Settings.Tier}/LambdaSharp/DeploymentBucket' being set");
                 return false;
             }
-            var stackName = $"{deployment.Settings.DevEnv}-{deployment.Name}";
+            var stackName = $"{deployment.Settings.Tier}-{deployment.Name}";
             Console.WriteLine($"Deploying stack: {stackName}");
 
             // upload function packages

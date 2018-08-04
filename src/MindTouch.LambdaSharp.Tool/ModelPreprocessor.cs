@@ -107,7 +107,7 @@ namespace MindTouch.LambdaSharp.Tool {
             }
 
             // add built-in variables
-            variables["DevEnv"] = Settings.DevEnv;
+            variables["Tier"] = Settings.Tier;
             variables["GitSha"] = Settings.GitSha;
             variables["AwsRegion"] = Settings.AwsRegion;
             variables["AwsAccountId"] = Settings.AwsAccountId;
@@ -193,15 +193,15 @@ namespace MindTouch.LambdaSharp.Tool {
                         End = inputMap.End
                     };
                     Tuple<string, AYamlValue> choice = null;
-                    var devEnvKey = ":" + Settings.DevEnv;
+                    var tierKey = ":" + Settings.Tier;
                     foreach(var inputEntry in inputMap.Entries) {
 
-                        // entries that start with `:` are considered a conditional based on the current development environment value
+                        // entries that start with `:` are considered a conditional based on the current deployment tier value
                         if(inputEntry.Key.Scalar.Value.StartsWith(":")) {
 
-                            // check if the key matches the development environment value or the key is `:Default` and no choice has been made yet
+                            // check if the key matches the deployment tier value or the key is `:Default` and no choice has been made yet
                             if(
-                                (inputEntry.Key.Scalar.Value == devEnvKey)
+                                (inputEntry.Key.Scalar.Value == tierKey)
                                 || (
                                     (inputEntry.Key.Scalar.Value == ":Default") 
                                     && (choice == null)

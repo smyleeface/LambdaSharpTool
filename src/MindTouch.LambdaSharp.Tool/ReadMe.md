@@ -19,7 +19,7 @@ The default filename for the deployment file is `Deploy.yml` in the current work
 CloudFormation stacks created by the λ# tool have termination protection enabled. In addition, subsequent updates cannot delete or replace data resources unless the `--allow-data-loss` option is passed in. This behavior is to reduce the risk of accidental data loss when CloudFormation resources are being accidentally replaced.
 
 ```
-> lash deploy --devenv Demo
+> lash deploy --tier Demo
 MindTouch LambdaSharp Tool - Create/Update LambdaSharp deployment
 Retrieving LambdaSharp settings for `Demo'
 Loading 'Deploy.yml'
@@ -48,8 +48,8 @@ lash deploy Deploy.yml
 ### Options
 
 <dl>
-<dt><tt>--devenv|-D &lt;NAME&gt;</tt></dt>
-<dd>(optional) Name of development environment (default: <tt>LAMBDASHARPDEVENV</tt> environment variable)</dd>
+<dt><tt>--tier|-T &lt;NAME&gt;</tt></dt>
+<dd>(optional) Name of deployment tier (default: <tt>LAMBDASHARPTIER</tt> environment variable)</dd>
 <dt><tt>--dryrun[:&lt;LEVEL&gt;]</tt></dt>
 <dd>(optional) Generate output assets without deploying (0=everything, 1=cloudformation)</dd>
 <dt><tt>--output &lt;FILE&gt;</tt></dt>
@@ -82,22 +82,22 @@ The `info` command shows the settings for λ# deployments.
 
 The following settings are read from AWS Systems Manager Parameter Store:
 <dl>
-<dt><tt>/{{DevEnv}}/LambdaSharp/DeadLetterQueue</tt></dt>
+<dt><tt>/{{Tier}}/LambdaSharp/DeadLetterQueue</tt></dt>
 <dd>The SQS Queue URL used by Lambda functions as their dead-letter queue.</dd>
-<dt><tt>/{{DevEnv}}/LambdaSharp/DeploymentBucket</tt></dt>
+<dt><tt>/{{Tier}}/LambdaSharp/DeploymentBucket</tt></dt>
 <dd>The S3 bucket used by the λ# tool to upload assets.</dd>
-<dt><tt>/{{DevEnv}}/LambdaSharp/DeploymentNotificationTopic</tt></dt>
+<dt><tt>/{{Tier}}/LambdaSharp/DeploymentNotificationTopic</tt></dt>
 <dd>(optiona) The ARN for an SNS topic that will be used to broadcast stack creation, update, and deletion events.</dd>
-<dt><tt>/{{DevEnv}}/LambdaSharp/RollbarCustomResourceTopic</tt></dt>
+<dt><tt>/{{Tier}}/LambdaSharp/RollbarCustomResourceTopic</tt></dt>
 <dd>(optional) The ARN for an SNS topic that will create a Rollbar project and return its tokwn.</dd>
 </dl>
 
 
 ```
-> lash info --devenv Demo
+> lash info --tier Demo
 MindTouch LambdaSharp Tool - Show LambdaSharp settings
 Retrieving LambdaSharp settings for `Demo'
-Development Environment: Demo
+Deployment tier: Demo
 Git SHA: 8ec32d267a1fef38e8e133d8ee19cf857d3a0911
 AWS Region: us-east-1
 AWS Account Id: 123456789012
@@ -110,8 +110,8 @@ LambdaSharp Rollbar Custom Resource Topic: arn:aws:sns:us-east-1:123456789012:La
 ### Options
 
 <dl>
-<dt><tt>--devenv|-D &lt;NAME&gt;</tt></dt>
-<dd>(optional) Name of development environment (default: <tt>LAMBDASHARPDEVENV</tt> environment variable)</dd>
+<dt><tt>--tier|-T &lt;NAME&gt;</tt></dt>
+<dd>(optional) Name of deployment tier (default: <tt>LAMBDASHARPTIER</tt> environment variable)</dd>
 <dt><tt>--profile|-P &lt;NAME&gt;</tt></dt>
 <dd>(optional) Use a specific AWS profile from the AWS credentials file</dd>
 <dt><tt>--verbose|-V[:&lt;LEVEL&gt;]</tt></dt>

@@ -58,7 +58,7 @@ namespace MindTouch.LambdaSharp {
         private string _errorTopic;
         private bool _initialized;
         private LambdaConfig _appConfig;
-        private string _devEnv;
+        private string _tier;
         private string _deployment;
         private string _stackName;
 
@@ -127,12 +127,12 @@ namespace MindTouch.LambdaSharp {
         protected virtual async Task InitializeAsync(ILambdaConfigSource envSource, ILambdaContext context) {
 
             // read bootstrap configuration from environment
-            _devEnv = envSource.Read("DEVENV");
+            _tier = envSource.Read("TIER");
             _deployment = envSource.Read("DEPLOYMENT");
             _deadLetterQueueUrl = envSource.Read("DEADLETTERQUEUE");
             _errorTopic = envSource.Read("ERRORTOPIC");
             var framework = envSource.Read("LAMBDARUNTIME");
-            LogInfo($"DEVENV = {_devEnv}");
+            LogInfo($"TIER = {_tier}");
             LogInfo($"DEPLOYMENT = {_deployment}");
             LogInfo($"DEADLETTERQUEUE = {_deadLetterQueueUrl ?? "NONE"}");
             LogInfo($"ERRORTOPIC = {_errorTopic ?? "NONE"}");
@@ -159,7 +159,7 @@ namespace MindTouch.LambdaSharp {
                 _rollbarClient = RollbarClient.Create(new RollbarConfiguration(
                     rollbarAccessToken,
                     proxy,
-                    _devEnv,
+                    _tier,
                     platform,
                     framework,
                     gitsha
@@ -259,8 +259,8 @@ namespace MindTouch.LambdaSharp {
                         TopicArn = _errorTopic,
                         Message = _rollbarClient.CreatePayload(MAX_SNS_SIZE, level.ToString(), exception, format, args),
                         MessageAttributes = new Dictionary<string, MessageAttributeValue> {
-                            ["DevEnv"] = new MessageAttributeValue {
-                                StringValue = _devEnv
+                            ["Tier"] = new MessageAttributeValue {
+                                StringValue = _tier
                             },
                             ["Deployment"] = new MessageAttributeValue {
                                 StringValue = _deployment

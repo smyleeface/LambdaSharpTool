@@ -2,7 +2,7 @@
 
 # Setup LambdaSharp Environment
 
-Setting up the λ# environment is required for each development environment (e.g. `Test`, `Stage`, `Prod`, etc.).
+Setting up the λ# environment is required for each deployment tier (e.g. `Test`, `Stage`, `Prod`, etc.).
 
 ## 1) Install λ# Tool
 
@@ -53,16 +53,16 @@ Run 'MindTouch.LambdaSharp.Tool [command] --help' for more information about a c
 
 ## 2) λ# Bootstrap
 
-The λ# environment requires an AWS account to be setup for each development environment (e.g. `Test`, `Stage`, `Prod`, etc.). λ# deployments can be deployed once the development environment has the needed AWS resources.
+The λ# environment requires an AWS account to be setup for each deployment tier (e.g. `Test`, `Stage`, `Prod`, etc.). λ# deployments can be deployed once the deployment tier has the needed AWS resources.
 
 λ# requires some resources to exist to deploy apps. These are created during the bootstrap phase. The following command creates the basic resources needed to deploy lambda functions, such as a the deployment bucket and dead-letter queue.
 
-For the purpose of this tutorial, we use `Demo` as the new development environment name. The next step must to be repeated for each development environment (e.g. `Test`, `Stage`, `Prod`, etc.).
+For the purpose of this tutorial, we use `Demo` as the new deployment tier name. The next step must to be repeated for each deployment tier (e.g. `Test`, `Stage`, `Prod`, etc.).
 
 ```bash
 lash deploy \
     --bootstrap \
-    --devenv Demo \
+    --tier Demo \
     $LAMBDASHARP/Bootstrap/LambdaSharp/Deploy.yml
 ```
 
@@ -72,6 +72,6 @@ lash deploy \
 
 ```bash
 lash deploy \
-    --devenv Demo \
+    --tier Demo \
     $LAMBDASHARP/Bootstrap/LambdaSharpS3PackageLoader/Deploy.yml
 ```
