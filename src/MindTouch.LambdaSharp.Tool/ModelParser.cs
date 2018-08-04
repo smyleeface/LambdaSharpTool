@@ -138,7 +138,7 @@ namespace MindTouch.LambdaSharp.Tool {
                         Properties = new Dictionary<string, object> {
                             ["ServiceToken"] = _deployment.Settings.RollbarCustomResourceTopicArn,
                             ["Project"] = _deployment.Name,
-                            ["Tier"] = _deployment.Settings.Tier
+                            ["DevEnv"] = _deployment.Settings.DevEnv
                         }
                     }
                 });
@@ -1125,9 +1125,9 @@ namespace MindTouch.LambdaSharp.Tool {
                                 return;
                             }
 
-                            // check if import requires a development tier prefix
+                            // check if import requires a development environment prefix
                             if(!param.Import.StartsWith("/")) {
-                                param.Import = $"/{_deployment.Settings.Tier}/" + param.Import;
+                                param.Import = $"/{_deployment.Settings.DevEnv}/" + param.Import;
                             }
                             _importer.Add(param.Import);
                         });
@@ -1173,7 +1173,7 @@ namespace MindTouch.LambdaSharp.Tool {
 
                                     // check if custom resource needs a service token to be retrieved
                                     if(!(param.Resource.Properties?.ContainsKey("ServiceToken") ?? false)) {
-                                        var serviceTokenImport = $"/{_deployment.Settings.Tier}"
+                                        var serviceTokenImport = $"/{_deployment.Settings.DevEnv}"
                                             + $"/{customResourceHandlerAndType[0]}"
                                             + $"/{customResourceHandlerAndType[1]}CustomResourceTopic";
                                         param.Resource.ServiceTokenImport = serviceTokenImport;
@@ -1199,7 +1199,7 @@ namespace MindTouch.LambdaSharp.Tool {
                         var vpc = function.VPC;
                         if(!string.IsNullOrEmpty(vpc)) {
                             if(!vpc.StartsWith("/")) {
-                                vpc = $"/{_deployment.Settings.Tier}/VPC/{vpc}/";
+                                vpc = $"/{_deployment.Settings.DevEnv}/VPC/{vpc}/";
                             }
                             _importer.Add(vpc);
                         }

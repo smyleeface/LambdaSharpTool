@@ -124,7 +124,7 @@ namespace MindTouch.LambdaSharp.Tool {
                     },
                     Policies = new List<IAM.Policy> {
                         new IAM.Policy {
-                            PolicyName = $"{_deployment.Settings.Tier}-{_deployment.Name}-policy",
+                            PolicyName = $"{_deployment.Settings.DevEnv}-{_deployment.Name}-policy",
                             PolicyDocument = new PolicyDocument {
 
                                 // NOTE: additional resource statements can be added by resources
@@ -144,7 +144,7 @@ namespace MindTouch.LambdaSharp.Tool {
                     var restApiName = $"{_deployment.Name}RestApi";
                     var restApiDescription = $"API for {_deployment.Name}: {_deployment.Description}";
                     _stack.Add(restApiName, new ApiGateway.RestApi {
-                        Name = $"{_deployment.Name} API ({_deployment.Settings.Tier})",
+                        Name = $"{_deployment.Name} API ({_deployment.Settings.DevEnv})",
                         Description = restApiDescription,
                         FailOnWarnings = true
                     });
@@ -223,10 +223,10 @@ namespace MindTouch.LambdaSharp.Tool {
                     // NOTE (2018-06-21, bjorg): the RestApi deployment resource depends on ALL methods resources having been created
                     _stack.Add(restApiDeploymentName, new ApiGateway.Deployment {
                         RestApiId = Fn.Ref(restApiName),
-                        Description = $"{_deployment.Name} API ({_deployment.Settings.Tier}) [{methodsHash}]"
+                        Description = $"{_deployment.Name} API ({_deployment.Settings.DevEnv}) [{methodsHash}]"
                     }, dependsOn: apiMethods.Select(kv => kv.Key).ToArray());
 
-                    // RestApi stage depends on development tier and account
+                    // RestApi stage depends on API gateway deployment and API gateway account
                     // NOTE (2018-06-21, bjorg): the stage resource depends on the account resource having been granted
                     // the necessary permissions for logging
                     var restApiStageName = restApiName + "Stage";
@@ -373,9 +373,8 @@ namespace MindTouch.LambdaSharp.Tool {
 
         private void AddFunction(Function function, IDictionary<string, object> environmentRefVariables) {
             var environmentVariables = function.Environment.ToDictionary(kv => kv.Key, kv => (dynamic)kv.Value);
-            environmentVariables["TIER"] = _deployment.Settings.Tier;
+            environmentVariables["DEVENV"] = _deployment.Settings.DevEnv;
             environmentVariables["APPNAME"] = _deployment.Name;
-            environmentVariables["STACKNAME"] = $"{_deployment.Settings.Tier}-{_deployment.Name}";
             environmentVariables["DEADLETTERQUEUE"] = _deployment.Settings.DeadLetterQueueUrl;
             environmentVariables["LAMBDARUNTIME"] = function.Runtime;
             foreach(var environmentRefVariable in environmentRefVariables) {
@@ -414,8 +413,8 @@ namespace MindTouch.LambdaSharp.Tool {
                 VpcConfig = vpcConfig,
                 Tags = new List<Tag> {
                     new Tag {
-                        Key = "lambdasharp:tier",
-                        Value = _deployment.Settings.Tier
+                        Key = "lambdasharp:devenv",
+                        Value = _deployment.Settings.DevEnv
                     },
                     new Tag {
                         Key = "lambdasharp:deployment",
@@ -663,7 +662,7 @@ namespace MindTouch.LambdaSharp.Tool {
 
                             // check if we need to create a hashed bucket name and set `BucketName` in template
                             if(s3Template.BucketName == null) {
-                                var bucketName = $"{_deployment.Settings.Tier}-{_deployment.Name}-{resourceName}-".ToLowerInvariant();
+                                var bucketName = $"{_deployment.Settings.DevEnv}-{_deployment.Name}-{resourceName}-".ToLowerInvariant();
                                 bucketName += $"{_deployment.Settings.AwsAccountId}-{_deployment.Settings.AwsRegion}-{bucketName}".ToMD5Hash().Substring(0, 7).ToLowerInvariant();
                                 s3Template.BucketName = bucketName;
                                 var arn = $"arn:aws:s3:::{bucketName}";
@@ -736,7 +735,7 @@ namespace MindTouch.LambdaSharp.Tool {
             if(parameter.Export != null) {
                 var export = parameter.Export.StartsWith("/")
                     ? parameter.Export
-                    : $"/{_deployment.Settings.Tier}/{_deployment.Name}/{parameter.Export}";
+                    : $"/{_deployment.Settings.DevEnv}/{_deployment.Name}/{parameter.Export}";
                 _stack.Add(resourcePrefix + parameter.Name + "SsmParameter", new SSM.Parameter {
                     Name = export,
                     Description = parameter.Description,
@@ -746,6 +745,6 @@ namespace MindTouch.LambdaSharp.Tool {
             }
         }
 
-        private string ToAppResourceName(string name) => (name != null) ? $"{_deployment.Settings.Tier}-{_deployment.Name}-{name}" : null;
+        private string ToAppResourceName(string name) => (name != null) ? $"{_deployment.Settings.DevEnv}-{_deployment.Name}-{name}" : null;
    }
 }

@@ -11,7 +11,7 @@
       "Properties": {
         "ServiceToken": "arn:aws:sns:us-east-1:123456789012:LambdaSharpRollbar-RollbarCustomResourceTopic",
         "Project": "TestDeployment",
-        "Tier": "TestTier"
+        "DevEnv": "Test"
       }
     },
     "AppRole": {
@@ -65,7 +65,7 @@
                 }
               ]
             },
-            "PolicyName": "TestTier-TestDeployment-policy"
+            "PolicyName": "Test-TestDeployment-policy"
           }
         ]
       }
@@ -82,9 +82,9 @@
         },
         "Environment": {
           "Variables": {
-            "TIER": "TestTier",
+            "DEVENV": "Test",
             "APPNAME": "TestDeployment",
-            "STACKNAME": "TestTier-TestDeployment",
+            "STACKNAME": "Test-TestDeployment",
             "DEADLETTERQUEUE": "https://sqs.us-east-1.amazonaws.com/123456789012/LambdaSharp-DeadLetterQueue",
             "LAMBDARUNTIME": "dotnetcore2.1",
             "STACK_TOPIC": {
@@ -98,7 +98,7 @@
             }
           }
         },
-        "FunctionName": "TestTier-TestDeployment-Function",
+        "FunctionName": "Test-TestDeployment-Function",
         "Handler": "TestDeployment.Function::MindTouch.LambdaSharpTestDeployment.Function.Function::FunctionHandlerAsync",
         "MemorySize": "128",
         "Role": {
@@ -110,8 +110,8 @@
         "Runtime": "dotnetcore2.1",
         "Tags": [
           {
-            "Key": "lambdasharp:tier",
-            "Value": "TestTier"
+            "Key": "lambdasharp:devenv",
+            "Value": "Test"
           },
           {
             "Key": "lambdasharp:deployment",

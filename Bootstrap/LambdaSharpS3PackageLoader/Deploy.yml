@@ -7,15 +7,15 @@ Parameters:
   - Name: S3BucketPermissions
     Description: LambdaSharpS3PackageLoader requires read-write access to all buckets
     Values: 
-      - "arn:aws:s3:::{{Tier}}-*"
-      - "arn:aws:s3:::{{Tier}}-*/*"
+      - "arn:aws:s3:::{{DevEnv}}-*"
+      - "arn:aws:s3:::{{DevEnv}}-*/*"
     Resource:
       Type: AWS::S3::Bucket
       Allow: ReadWrite
 
   - Name: S3PackageLoaderCustomResourceTopic
     Description: Custom resource topic for synchronizaing packages with S3 buckets
-    Export: /{{Tier}}/LambdaSharp/S3PackageLoaderCustomResourceTopic
+    Export: /{{DevEnv}}/LambdaSharp/S3PackageLoaderCustomResourceTopic
     Resource:
       Type: AWS::SNS::Topic
       Allow: Subscribe

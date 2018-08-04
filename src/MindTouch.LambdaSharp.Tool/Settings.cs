@@ -32,7 +32,7 @@ namespace MindTouch.LambdaSharp.Tool {
     public class Settings {
 
         //--- Properties ---
-        public string Tier { get; set; }
+        public string DevEnv { get; set; }
         public string GitSha { get; set; }
         public string AwsRegion { get; set; }
         public string AwsAccountId { get; set; }

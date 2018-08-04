@@ -21,7 +21,7 @@ Parameters:
 
   - Name: RollbarProjectCustomResourceTopic
     Description: Custom resource topic for Rollbar projects
-    Export: /{{Tier}}/LambdaSharp/RollbarProjectCustomResourceTopic
+    Export: /{{DevEnv}}/LambdaSharp/RollbarProjectCustomResourceTopic
     Resource:
       Type: AWS::SNS::Topic
       Allow: Subscribe

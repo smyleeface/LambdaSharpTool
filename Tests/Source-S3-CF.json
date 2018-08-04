@@ -5,7 +5,7 @@
     "Bucket": {
       "Type": "AWS::S3::Bucket",
       "Properties": {
-        "BucketName": "testtier-testdeployment-bucket-fdc7574",
+        "BucketName": "test-testdeployment-bucket-a6f6994",
         "NotificationConfiguration": {
           "LambdaConfigurations": [
             {
@@ -63,7 +63,7 @@
       "Properties": {
         "ServiceToken": "arn:aws:sns:us-east-1:123456789012:LambdaSharpRollbar-RollbarCustomResourceTopic",
         "Project": "TestDeployment",
-        "Tier": "TestTier"
+        "DevEnv": "Test"
       }
     },
     "AppRole": {
@@ -128,8 +128,8 @@
                     "s3:RestoreObject"
                   ],
                   "Resource": [
-                    "arn:aws:s3:::testtier-testdeployment-bucket-fdc7574",
-                    "arn:aws:s3:::testtier-testdeployment-bucket-fdc7574/*"
+                    "arn:aws:s3:::test-testdeployment-bucket-a6f6994",
+                    "arn:aws:s3:::test-testdeployment-bucket-a6f6994/*"
                   ]
                 },
                 {
@@ -141,7 +141,7 @@
                 }
               ]
             },
-            "PolicyName": "TestTier-TestDeployment-policy"
+            "PolicyName": "Test-TestDeployment-policy"
           }
         ]
       }
@@ -158,12 +158,12 @@
         },
         "Environment": {
           "Variables": {
-            "TIER": "TestTier",
+            "DEVENV": "Test",
             "APPNAME": "TestDeployment",
-            "STACKNAME": "TestTier-TestDeployment",
+            "STACKNAME": "Test-TestDeployment",
             "DEADLETTERQUEUE": "https://sqs.us-east-1.amazonaws.com/123456789012/LambdaSharp-DeadLetterQueue",
             "LAMBDARUNTIME": "dotnetcore2.1",
-            "STACK_BUCKET": "testtier-testdeployment-bucket-fdc7574",
+            "STACK_BUCKET": "test-testdeployment-bucket-a6f6994",
             "STACK_ROLLBARTOKEN": {
               "Fn::GetAtt": [
                 "RollbarToken",
@@ -172,7 +172,7 @@
             }
           }
         },
-        "FunctionName": "TestTier-TestDeployment-Function",
+        "FunctionName": "Test-TestDeployment-Function",
         "Handler": "TestDeployment.Function::MindTouch.LambdaSharpTestDeployment.Function.Function::FunctionHandlerAsync",
         "MemorySize": "128",
         "Role": {
@@ -184,8 +184,8 @@
         "Runtime": "dotnetcore2.1",
         "Tags": [
           {
-            "Key": "lambdasharp:tier",
-            "Value": "TestTier"
+            "Key": "lambdasharp:devenv",
+            "Value": "Test"
           },
           {
             "Key": "lambdasharp:deployment",
@@ -207,7 +207,7 @@
         },
         "Principal": "s3.amazonaws.com",
         "SourceAccount": "123456789012",
-        "SourceArn": "arn:aws:s3:::testtier-testdeployment-bucket-fdc7574"
+        "SourceArn": "arn:aws:s3:::test-testdeployment-bucket-a6f6994"
       }
     }
   }

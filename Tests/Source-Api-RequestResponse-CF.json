@@ -7,7 +7,7 @@
       "Properties": {
         "ServiceToken": "arn:aws:sns:us-east-1:123456789012:LambdaSharpRollbar-RollbarCustomResourceTopic",
         "Project": "TestDeployment",
-        "Tier": "TestTier"
+        "DevEnv": "Test"
       }
     },
     "AppRole": {
@@ -52,7 +52,7 @@
                 }
               ]
             },
-            "PolicyName": "TestTier-TestDeployment-policy"
+            "PolicyName": "Test-TestDeployment-policy"
           }
         ]
       }
@@ -69,9 +69,9 @@
         },
         "Environment": {
           "Variables": {
-            "TIER": "TestTier",
+            "DEVENV": "Test",
             "APPNAME": "TestDeployment",
-            "STACKNAME": "TestTier-TestDeployment",
+            "STACKNAME": "Test-TestDeployment",
             "DEADLETTERQUEUE": "https://sqs.us-east-1.amazonaws.com/123456789012/LambdaSharp-DeadLetterQueue",
             "LAMBDARUNTIME": "dotnetcore2.1",
             "STACK_ROLLBARTOKEN": {
@@ -82,7 +82,7 @@
             }
           }
         },
-        "FunctionName": "TestTier-TestDeployment-Function",
+        "FunctionName": "Test-TestDeployment-Function",
         "Handler": "TestDeployment.Function::MindTouch.LambdaSharpTestDeployment.Function.Function::FunctionHandlerAsync",
         "MemorySize": "128",
         "Role": {
@@ -94,8 +94,8 @@
         "Runtime": "dotnetcore2.1",
         "Tags": [
           {
-            "Key": "lambdasharp:tier",
-            "Value": "TestTier"
+            "Key": "lambdasharp:devenv",
+            "Value": "Test"
           },
           {
             "Key": "lambdasharp:deployment",
@@ -110,7 +110,7 @@
       "Properties": {
         "Description": "API for TestDeployment: LambdaSharp CloudFormation Test",
         "FailOnWarnings": true,
-        "Name": "TestDeployment API (TestTier)"
+        "Name": "TestDeployment API (Test)"
       }
     },
     "TestDeploymentRestApiRole": {
@@ -457,7 +457,7 @@
     "TestDeploymentRestApiDeploymentC5270BE3FD219EBEB8BAE7AA9FE1570B": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
-        "Description": "TestDeployment API (TestTier) [C5270BE3FD219EBEB8BAE7AA9FE1570B]",
+        "Description": "TestDeployment API (Test) [C5270BE3FD219EBEB8BAE7AA9FE1570B]",
         "RestApiId": {
           "Ref": "TestDeploymentRestApi"
         }
