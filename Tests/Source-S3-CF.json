@@ -63,7 +63,7 @@
       "Properties": {
         "ServiceToken": "arn:aws:sns:us-east-1:123456789012:LambdaSharpRollbar-RollbarCustomResourceTopic",
         "Project": "TestDeployment",
-        "DevEnv": "Test"
+        "Tier": "Test"
       }
     },
     "AppRole": {
@@ -158,10 +158,10 @@
         },
         "Environment": {
           "Variables": {
-            "DEVENV": "Test",
+            "TIER": "Test",
             "APPNAME": "TestDeployment",
-            "STACKNAME": "Test-TestDeployment",
             "DEADLETTERQUEUE": "https://sqs.us-east-1.amazonaws.com/123456789012/LambdaSharp-DeadLetterQueue",
+            "LOGGINGTOPIC": "arn:aws:sns:us-east-1:123456789012:LambdaSharp-LoggingTopic",
             "LAMBDARUNTIME": "dotnetcore2.1",
             "STACK_BUCKET": "test-testdeployment-bucket-a6f6994",
             "STACK_ROLLBARTOKEN": {
@@ -184,7 +184,7 @@
         "Runtime": "dotnetcore2.1",
         "Tags": [
           {
-            "Key": "lambdasharp:devenv",
+            "Key": "lambdasharp:tier",
             "Value": "Test"
           },
           {

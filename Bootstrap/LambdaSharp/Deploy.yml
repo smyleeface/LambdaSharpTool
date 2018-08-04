@@ -4,11 +4,23 @@ Description: AWS assets required by LambdaSharp apps
 
 Parameters:
 
+  - Name: Version
+    Description: LambdaSharp environment version
+    Value: 0.2
+    Export: Version
+
   - Name: DeadLetterQueue
     Description: SQS queue used by LambdaSharp functions for failed messages
     Export: DeadLetterQueue
     Resource:
       Type: AWS::SQS::Queue
+      Allow: None
+  
+  - Name: LoggingTopic
+    Description: SNS topic used by LambdaSharp functions to log warnings and errors
+    Export: LoggingTopic
+    Resource:
+      Type: AWS::SNS::Topic
       Allow: None
 
   - Name: DeploymentBucket

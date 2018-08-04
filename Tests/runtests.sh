@@ -4,6 +4,7 @@ dotnet run -p $LAMBDASHARP/src/MindTouch.LambdaSharp.Tool/MindTouch.LambdaSharp.
     --aws-region us-east-1 \
     --deployment-bucket-name lambdsharp-bucket-name \
     --deployment-deadletter-queue-url https://sqs.us-east-1.amazonaws.com/123456789012/LambdaSharp-DeadLetterQueue \
+    --deployment-logging-topic-arn  arn:aws:sns:us-east-1:123456789012:LambdaSharp-LoggingTopic \
     --deployment-notification-topic-arn  arn:aws:sns:us-east-1:123456789012:LambdaSharp-DeploymentNotificationTopic \
     --deployment-rollbar-customresource-topic-arn arn:aws:sns:us-east-1:123456789012:LambdaSharpRollbar-RollbarCustomResourceTopic \
     --deployment-s3packageloader-customresource-topic-arn arn:aws:sns:us-east-1:123456789012:LambdaSharpRollbar-S3PackageLoaderCustomResourceTopic
@@ -18,6 +19,7 @@ lash() {
         --aws-region us-east-1 \
         --deployment-bucket-name lambdsharp-bucket-name \
         --deployment-deadletter-queue-url https://sqs.us-east-1.amazonaws.com/123456789012/LambdaSharp-DeadLetterQueue \
+        --deployment-logging-topic-arn  arn:aws:sns:us-east-1:123456789012:LambdaSharp-LoggingTopic \
         --deployment-notification-topic-arn  arn:aws:sns:us-east-1:123456789012:LambdaSharp-DeploymentNotificationTopic \
         --deployment-rollbar-customresource-topic-arn arn:aws:sns:us-east-1:123456789012:LambdaSharpRollbar-RollbarCustomResourceTopic \
         --deployment-s3packageloader-customresource-topic-arn arn:aws:sns:us-east-1:123456789012:LambdaSharpRollbar-S3PackageLoaderCustomResourceTopic \

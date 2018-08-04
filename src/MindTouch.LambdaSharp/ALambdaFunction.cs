@@ -55,7 +55,7 @@ namespace MindTouch.LambdaSharp {
         private readonly ILambdaConfigSource _envSource;
         private IRollbarClient _rollbarClient;
         private string _deadLetterQueueUrl;
-        private string _errorTopic;
+        private string _loggingTopic;
         private bool _initialized;
         private LambdaConfig _appConfig;
         private string _tier;
@@ -130,13 +130,12 @@ namespace MindTouch.LambdaSharp {
             _tier = envSource.Read("TIER");
             _deployment = envSource.Read("DEPLOYMENT");
             _deadLetterQueueUrl = envSource.Read("DEADLETTERQUEUE");
-            _errorTopic = envSource.Read("ERRORTOPIC");
+            _loggingTopic = envSource.Read("LOGGINGTOPIC");
             var framework = envSource.Read("LAMBDARUNTIME");
             LogInfo($"TIER = {_tier}");
             LogInfo($"DEPLOYMENT = {_deployment}");
             LogInfo($"DEADLETTERQUEUE = {_deadLetterQueueUrl ?? "NONE"}");
-            LogInfo($"ERRORTOPIC = {_errorTopic ?? "NONE"}");
-            LogInfo($"ROLLBARERRORTOPIC = {_errorTopic ?? "NONE"}");
+            LogInfo($"LOGGINGTOPIC = {_loggingTopic ?? "NONE"}");
 
             // read optional git-sha file
             var gitsha = File.Exists("gitsha.txt") ? File.ReadAllText("gitsha.txt") : null;
@@ -252,11 +251,11 @@ namespace MindTouch.LambdaSharp {
                     } catch(Exception e) {
                         Log(LambdaLogLevel.ERROR, $"rollbar client exception", e.ToString());
                     }
-                } else if(_errorTopic != null) {
+                } else if(_loggingTopic != null) {
 
                     // send exception to error-topic
                     _snsClient.PublishAsync(new PublishRequest {
-                        TopicArn = _errorTopic,
+                        TopicArn = _loggingTopic,
                         Message = _rollbarClient.CreatePayload(MAX_SNS_SIZE, level.ToString(), exception, format, args),
                         MessageAttributes = new Dictionary<string, MessageAttributeValue> {
                             ["Tier"] = new MessageAttributeValue {

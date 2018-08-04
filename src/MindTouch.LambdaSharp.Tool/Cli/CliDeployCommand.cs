@@ -46,8 +46,30 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                 var initSettingsCallback = CreateSettingsInitializer(cmd);
                 cmd.OnExecute(async () => {
                     Console.WriteLine($"{app.FullName} - {cmd.Description}");
+
+                    // read settings and validate them
                     var settings = await initSettingsCallback();
                     if(settings == null) {
+                        return;
+                    }
+                    var validated = true;
+                    if(settings.DeploymentBucketName == null) {
+                        AddError("unable to determine the LambdaSharp S3 Bucket");
+                        validated = false;
+                    }
+                    if(settings.DeadLetterQueueUrl == null) {
+                        AddError("unable to determine the LambdaSharp Dead-Letter Queue");
+                        validated = false;
+                    }
+                    if(settings.LoggingTopicArn == null) {
+                        AddError("unable to determine the LambdaSharp Logging Topic");
+                        validated = false;
+                    }
+                    if(settings.DeploymentNotificationTopicArn == null) {
+                        AddError("unable to determine the LambdaSharp CloudFormation Notification Topic");
+                        validated = false;
+                    }
+                    if(!validated) {
                         return;
                     }
                     DryRunLevel? dryRun = null;

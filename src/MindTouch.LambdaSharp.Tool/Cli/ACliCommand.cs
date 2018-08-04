@@ -48,6 +48,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
             var awsRegionOption = cmd.Option("--aws-region <NAME>", "(test only) Override AWS region (default: read from AWS profile)", CommandOptionType.SingleValue);
             var deploymentBucketNameOption = cmd.Option("--deployment-bucket-name <NAME>", "(test only) S3 Bucket used to deploying assets (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
             var deploymentDeadletterQueueUrlOption = cmd.Option("--deployment-deadletter-queue-url <URL>", "(test only) SQS Deadletter queue used by function (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
+            var deploymentLoggingTopicArnOption = cmd.Option("--deployment-logging-topic-arn <ARN>", "(test only) SNS topic used by LambdaSharp functions to log warnings and errors (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
             var deploymentNotificationTopicArnOption = cmd.Option("--deployment-notification-topic-arn <ARN>", "(test only) SNS Topic used by CloudFormation deploymetions (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
             var boostrapOption = cmd.Option("--bootstrap", "(boostrap only) Don't read LambdaSharp initialization values", CommandOptionType.NoValue);
             var deploymentRollbarCustomResourceTopicArnOption = cmd.Option("--deployment-rollbar-customresource-topic-arn <ARN>", "(test only) SNS Topic for creating Rollbar projects (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
@@ -125,6 +126,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                 // initialize LambdaSharp deployment values
                 var deploymentBucketName = deploymentBucketNameOption.Value();
                 var deploymentDeadletterQueueUrl = deploymentDeadletterQueueUrlOption.Value();
+                var deploymentLoggingTopicArn = deploymentLoggingTopicArnOption.Value();
                 var deploymentNotificationTopicArn = deploymentNotificationTopicArnOption.Value();
                 var deploymentRollbarCustomResourceTopicArn = deploymentRollbarCustomResourceTopicArnOption.Value();
                 var deploymentS3PackageLoaderCustomResourceTopicArn = deploymentS3PackageLoaderCustomResourceTopicArnOption.Value();
@@ -133,30 +135,20 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                 } else if(
                     (deploymentBucketName == null)
                     || (deploymentDeadletterQueueUrl == null)
+                    || (deploymentLoggingTopicArn == null)
                     || (deploymentNotificationTopicArn == null)
                     || (deploymentRollbarCustomResourceTopicArn == null)
                     || (deploymentS3PackageLoaderCustomResourceTopicArn == null)
                 ) {
-                    Console.WriteLine($"Retrieving LambdaSharp settings for `{tier}'");
+                    Console.WriteLine($"Retrieving LambdaSharp settings for deployment tier `{tier}'");
 
                     // import lambdasharp parameters
                     var lambdaSharpPath = $"/{tier}/LambdaSharp/";
                     var lambdaSharpSettings = await ssmClient.GetAllParametersByPathAsync(lambdaSharpPath);
                     deploymentBucketName = deploymentBucketName ?? GetLambdaSharpSetting("DeploymentBucket");
-                    if(deploymentBucketName == null) {
-                        AddError("unable to determine the LambdaSharp S3 Bucket");
-                        return null;
-                    }
                     deploymentDeadletterQueueUrl = deploymentDeadletterQueueUrl ?? GetLambdaSharpSetting("DeadLetterQueue");
-                    if(deploymentDeadletterQueueUrl == null) {
-                        AddError("unable to determine the LambdaSharp Dead-Letter Queue");
-                        return null;
-                    }
+                    deploymentLoggingTopicArn = deploymentLoggingTopicArn ?? GetLambdaSharpSetting("LoggingTopic");
                     deploymentNotificationTopicArn = deploymentNotificationTopicArn ?? GetLambdaSharpSetting("DeploymentNotificationTopic");
-                    if(deploymentNotificationTopicArn == null) {
-                        AddError("unable to determine the LambdaSharp CloudFormation Notification Topic");
-                        return null;
-                    }
 
                     // Rollbar custom topic is optional, so don't check for null
                     deploymentRollbarCustomResourceTopicArn = deploymentRollbarCustomResourceTopicArn ?? GetLambdaSharpSetting("RollbarCustomResourceTopic");
@@ -177,6 +169,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                     AwsAccountId = awsAccountId,
                     DeploymentBucketName = deploymentBucketName,
                     DeadLetterQueueUrl = deploymentDeadletterQueueUrl,
+                    LoggingTopicArn = deploymentLoggingTopicArn,
                     DeploymentNotificationTopicArn = deploymentNotificationTopicArn,
                     RollbarCustomResourceTopicArn = deploymentRollbarCustomResourceTopicArn,
                     S3PackageLoaderCustomResourceTopicArn = deploymentS3PackageLoaderCustomResourceTopicArn,

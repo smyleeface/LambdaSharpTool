@@ -21,7 +21,7 @@ CloudFormation stacks created by the λ# tool have termination protection enable
 ```
 > lash deploy --tier Demo
 MindTouch LambdaSharp Tool - Create/Update LambdaSharp deployment
-Retrieving LambdaSharp settings for `Demo'
+Retrieving LambdaSharp settings for deployment tier `Demo'
 Loading 'Deploy.yml'
 Pre-processing
 Analyzing
@@ -96,13 +96,14 @@ The following settings are read from AWS Systems Manager Parameter Store:
 ```
 > lash info --tier Demo
 MindTouch LambdaSharp Tool - Show LambdaSharp settings
-Retrieving LambdaSharp settings for `Demo'
+Retrieving LambdaSharp settings for deployment tier `Demo'
 Deployment tier: Demo
 Git SHA: 8ec32d267a1fef38e8e133d8ee19cf857d3a0911
 AWS Region: us-east-1
 AWS Account Id: 123456789012
 LambdaSharp S3 Bucket: demo-lambdasharp-deploymentbucket
 LambdaSharp Dead-Letter Queue: https://sqs.us-east-1.amazonaws.com/Demo-LambdaSharp-DeadLetterQueue
+LambdaSharp Logging Topic: arn:aws:sns:us-east-1:123456789012:Demo-LambdaSharp-LoggingTopic
 LambdaSharp CloudFormation Notification Topic: arn:aws:sns:us-east-1:123456789012:Demo-LambdaSharp-DeploymentNotificationTopic
 LambdaSharp Rollbar Custom Resource Topic: arn:aws:sns:us-east-1:123456789012:LambdaSharpRollbar-RollbarCustomResourceTopic
 ```

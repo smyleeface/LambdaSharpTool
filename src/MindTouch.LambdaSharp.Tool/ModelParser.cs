@@ -166,11 +166,6 @@ namespace MindTouch.LambdaSharp.Tool {
                     if(_deployment.Settings.DeploymentBucketName == null) {
                         AddError("deploying functions requires a deployment bucket");
                     }
-
-                    // adde dead-letter queue permissions
-                    if(_deployment.Settings.DeadLetterQueueUrl == null) {
-                        AddError("deploying functions requires a dead letter queue ARN");
-                    }
                 });
                 var functionIndex = 0;
                 _deployment.Functions = AtLocation("Functions", () => deployment.Functions

@@ -38,6 +38,7 @@ namespace MindTouch.LambdaSharp.Tool {
         public string AwsAccountId { get; set; }
         public string DeploymentBucketName { get; set; }
         public string DeadLetterQueueUrl { get; set; }
+        public string LoggingTopicArn { get; set; }
         public string DeploymentNotificationTopicArn { get; set; }
         public string RollbarCustomResourceTopicArn { get; set; }
         public string S3PackageLoaderCustomResourceTopicArn { get; set; }

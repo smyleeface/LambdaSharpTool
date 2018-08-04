@@ -376,6 +376,7 @@ namespace MindTouch.LambdaSharp.Tool {
             environmentVariables["TIER"] = _deployment.Settings.Tier;
             environmentVariables["APPNAME"] = _deployment.Name;
             environmentVariables["DEADLETTERQUEUE"] = _deployment.Settings.DeadLetterQueueUrl;
+            environmentVariables["LOGGINGTOPIC"] = _deployment.Settings.LoggingTopicArn;
             environmentVariables["LAMBDARUNTIME"] = function.Runtime;
             foreach(var environmentRefVariable in environmentRefVariables) {
                 environmentVariables[environmentRefVariable.Key] = environmentRefVariable.Value;
