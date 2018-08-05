@@ -45,18 +45,18 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                     Console.WriteLine($"{app.FullName} - {cmd.Description}");
 
                     // read settings and validate them
-                    var settings = await initSettingsCallback();
-                    if(settings == null) {
+                    var settingsCollection = await initSettingsCallback();
+                    if(settingsCollection == null) {
                         return;
                     }
-                    var validated = true;
-                    if((settings.ModuleFileName == null) && File.Exists("Deploy.yml")) {
-                        settings.ModuleFileName = Path.GetFullPath("Deploy.yml");
-                    } else if((settings.ModuleFileName == null) || !File.Exists(settings.ModuleFileName)) {
-                        AddError($"could not find '{settings.ModuleFileName ?? Path.GetFullPath("Deploy.yml")}'");
-                        validated = false;
+                    foreach(var settings in settingsCollection) {
+                        if((settings.ModuleFileName == null) && File.Exists("Deploy.yml")) {
+                            settings.ModuleFileName = Path.GetFullPath("Deploy.yml");
+                        } else if((settings.ModuleFileName == null) || !File.Exists(settings.ModuleFileName)) {
+                            AddError($"could not find '{settings.ModuleFileName ?? Path.GetFullPath("Deploy.yml")}'");
+                        }
                     }
-                    if(!validated) {
+                    if(ErrorCount > 0) {
                         return;
                     }
                     DryRunLevel? dryRun = null;
@@ -69,17 +69,22 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                         }
                         dryRun = value;
                     }
-                    await Deploy(
-                        settings,
-                        dryRun,
-                        outputFilename.Value() ?? "cloudformation.json",
-                        allowDataLossOption.HasValue()
-                    );
+                    Console.WriteLine($"Readying module for deployment tier '{settingsCollection.First().Tier}'");
+                    foreach(var settings in settingsCollection) {
+                        if(!await Deploy(
+                            settings,
+                            dryRun,
+                            outputFilename.Value() ?? "cloudformation.json",
+                            allowDataLossOption.HasValue()
+                        )) {
+                            break;
+                        }
+                    }
                 });
             });
         }
 
-        private async Task Deploy(
+        private async Task<bool> Deploy(
             Settings settings,
             DryRunLevel? dryRun,
             string outputFilename,
@@ -88,33 +93,38 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
             var stopwatch = Stopwatch.StartNew();
 
             // read input file
+            Console.WriteLine();
             Console.WriteLine($"Processing module: {settings.ModuleFileName}");
             var source = await File.ReadAllTextAsync(settings.ModuleFileName);
 
             // preprocess file
             var tokenStream = new ModelPreprocessor(settings).Preprocess(source);
             if(ErrorCount > 0) {
-                return;
+                return false;
             }
 
             // parse yaml module file
             var module = new ModelParser(settings).Parse(tokenStream, skipCompile: dryRun == DryRunLevel.CloudFormation);
             if(ErrorCount > 0) {
-                return;
+                return false;
             }
 
             // generate cloudformation template
             var stack = new ModelGenerator().Generate(module);
             if(ErrorCount > 0) {
-                return;
+                return false;
             }
 
             // serialize stack to disk
+            var result = true;
             var outputPath = Path.Combine(settings.WorkingDirectory, outputFilename);
-            var template = new JsonStackSerializer().Serialize(stack);
-            File.WriteAllText(outputPath, template);
-            if(dryRun == null) {
-                await new StackUpdater().Deploy(module, template, allowDataLoos);
+            try {
+                var template = new JsonStackSerializer().Serialize(stack);
+                File.WriteAllText(outputPath, template);
+                if(dryRun == null) {
+                    result = await new StackUpdater().Deploy(module, template, allowDataLoos);
+                }
+            } finally {
 
                 // remove dryrun file if it exists
                 if(File.Exists(outputPath)) {
@@ -124,6 +134,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                 }
             }
             Console.WriteLine($"Done (duration: {stopwatch.Elapsed:c})");
+            return result;
         }
     }
 }

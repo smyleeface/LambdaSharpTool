@@ -112,7 +112,6 @@ namespace MindTouch.LambdaSharp.Tool {
 
             // convert 'Version' attribute to implicit 'Version' parameter
             if(module.Version == null) {
-                Console.WriteLine();
                 module.Version = "0.0.0.0";
             }
             if(Version.TryParse(module.Version, out System.Version _)) {
@@ -175,17 +174,17 @@ namespace MindTouch.LambdaSharp.Tool {
 
                     // check if a deployment bucket was specified
                     if(_module.Settings.DeploymentBucketName == null) {
-                        AddError("deploying functions requires a deployment bucket", new LambdaSharpEnvironmentSetupException());
+                        AddError("deploying functions requires a deployment bucket", new LambdaSharpDeploymentTierSetupException(_module.Settings.Tier));
                     }
 
                     // check if a dead-letter queue was specified
                     if(_module.Settings.DeadLetterQueueUrl == null) {
-                        AddError("deploying functions requires a dead-letter queue", new LambdaSharpEnvironmentSetupException());
+                        AddError("deploying functions requires a dead-letter queue", new LambdaSharpDeploymentTierSetupException(_module.Settings.Tier));
                     }
 
                     // check if a logging topic was set
                     if(_module.Settings.LoggingTopicArn == null) {
-                        AddError("deploying functions requires a logging topic", new LambdaSharpEnvironmentSetupException());
+                        AddError("deploying functions requires a logging topic", new LambdaSharpDeploymentTierSetupException(_module.Settings.Tier));
                     }
                 });
                 var functionIndex = 0;
@@ -256,12 +255,12 @@ namespace MindTouch.LambdaSharp.Tool {
 
                 // check if a deployment bucket exists
                 if(_module.Settings.DeploymentBucketName == null) {
-                    AddError("deploying packages requires a deployment bucket", new LambdaSharpEnvironmentSetupException());
+                    AddError("deploying packages requires a deployment bucket", new LambdaSharpDeploymentTierSetupException(_module.Settings.Tier));
                 }
 
                 // check if S3 package loader topic arn exists
                 if(_module.Settings.S3PackageLoaderCustomResourceTopicArn == null) {
-                    AddError("parameter package requires S3PackageLoader custom resource handler to be deployed", new LambdaSharpEnvironmentSetupException());
+                    AddError("parameter package requires S3PackageLoader custom resource handler to be deployed", new LambdaSharpDeploymentTierSetupException(_module.Settings.Tier));
                 }
             }
 
@@ -1161,13 +1160,13 @@ namespace MindTouch.LambdaSharp.Tool {
 
                 // check that LambdaSharp Environment & Tool versions match
                 if(Settings.EnvironmentVersion == null) {
-                    AddError("could not determine the LambdaSharp Environment version", new LambdaSharpEnvironmentSetupException());
+                    AddError("could not determine the LambdaSharp Environment version", new LambdaSharpDeploymentTierSetupException(_module.Settings.Tier));
                 } else {
                     if(
                         (Settings.EnvironmentVersion.Major != Settings.ToolVersion.Major) 
                         || (Settings.EnvironmentVersion.Minor != Settings.ToolVersion.Minor)
                     ) {
-                        AddError($"LambdaSharp Tool (v{Settings.ToolVersion}) and Environment (v{Settings.EnvironmentVersion}) Versions do not match", new LambdaSharpEnvironmentSetupException());
+                        AddError($"LambdaSharp Tool (v{Settings.ToolVersion}) and Environment (v{Settings.EnvironmentVersion}) Versions do not match", new LambdaSharpDeploymentTierSetupException(_module.Settings.Tier));
                     }
                 }
             }

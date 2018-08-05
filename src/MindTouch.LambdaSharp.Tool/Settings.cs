@@ -29,10 +29,15 @@ using MindTouch.LambdaSharp.Tool.Model;
 
 namespace MindTouch.LambdaSharp.Tool {
 
-    public class LambdaSharpEnvironmentSetupException : Exception {
+    public class LambdaSharpDeploymentTierSetupException : Exception {
+
+        //--- Fields ---
+        public readonly string Tier;
 
         //--- Constructors ---
-        public LambdaSharpEnvironmentSetupException() : base() { }
+        public LambdaSharpDeploymentTierSetupException(string tier) : base() {
+            Tier = tier ?? throw new ArgumentNullException(nameof(tier));
+        }
     }
 
     public class Settings {

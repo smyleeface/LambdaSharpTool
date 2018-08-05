@@ -54,6 +54,10 @@ namespace MindTouch.LambdaSharp.Tool.Internal {
 
         private static bool IsFinalStackEvent(StackEvent evt)
             => (evt.ResourceType == "AWS::CloudFormation::Stack") && _finalStates.Contains(evt.ResourceStatus);
+        
+        private static bool IsSuccessfulFinalStackEvent(StackEvent evt)
+            => (evt.ResourceType == "AWS::CloudFormation::Stack") 
+                && ((evt.ResourceStatus == "CREATE_COMPLETE") || (evt.ResourceStatus == "UPDATE_COMPLETE"));
 
         //--- Methods ---
         public async Task<bool> Deploy(Module module, string template, bool allowDataLoss) {
@@ -169,6 +173,7 @@ namespace MindTouch.LambdaSharp.Tool.Internal {
 }";
 
             // create/update cloudformation stack
+            var success = false;
             if(mostRecentStackEventId != null) {
                 try {
                     Console.WriteLine($"=> Stack update initiated");
@@ -184,13 +189,19 @@ namespace MindTouch.LambdaSharp.Tool.Internal {
                         TemplateBody = (templateUrl == null) ? template : null
                     };
                     var response = await module.Settings.CfClient.UpdateStackAsync(request);
-                    var stack = await TrackStackUpdate(module, response.StackId, mostRecentStackEventId);
-                    Console.WriteLine($"=> Stack update finished (finished: {DateTime.Now:yyyy-MM-dd HH:mm:ss})");
-                    ShowStackResult(stack);
+                    var outcome = await TrackStackUpdate(module, response.StackId, mostRecentStackEventId);
+                    if(outcome.Success) {
+                        Console.WriteLine($"=> Stack update finished (finished: {DateTime.Now:yyyy-MM-dd HH:mm:ss})");
+                        ShowStackResult(outcome.Stack);
+                        success = true;
+                    } else {
+                        Console.WriteLine($"=> Stack update FAILED (finished: {DateTime.Now:yyyy-MM-dd HH:mm:ss})");
+                    }
                 } catch(AmazonCloudFormationException e) when(e.Message == "No updates are to be performed.") {
 
                     // this error is thrown when no required updates where found
                     Console.WriteLine($"=> No stack update required (finished: {DateTime.Now:yyyy-MM-dd HH:mm:ss})");
+                    success = true;
                 }
             } else {
                 Console.WriteLine($"=> Stack creation initiated");
@@ -207,11 +218,16 @@ namespace MindTouch.LambdaSharp.Tool.Internal {
                     TemplateBody = (templateUrl == null) ? template : null
                 };
                 var response = await module.Settings.CfClient.CreateStackAsync(request);
-                var stack = await TrackStackUpdate(module, response.StackId, mostRecentStackEventId);
-                Console.WriteLine($"=> Stack creation finished (finished: {DateTime.Now:yyyy-MM-dd HH:mm:ss})");
-                ShowStackResult(stack);
+                var outcome = await TrackStackUpdate(module, response.StackId, mostRecentStackEventId);
+                if(outcome.Success) {
+                    Console.WriteLine($"=> Stack creation finished (finished: {DateTime.Now:yyyy-MM-dd HH:mm:ss})");
+                    ShowStackResult(outcome.Stack);
+                    success = true;
+                } else {
+                    Console.WriteLine($"=> Stack creation FAILED (finished: {DateTime.Now:yyyy-MM-dd HH:mm:ss})");
+                }
             }
-            return true;
+            return success;
 
             // local function
             void ShowStackResult(Stack stack) {
@@ -249,7 +265,7 @@ namespace MindTouch.LambdaSharp.Tool.Internal {
             }
         }
 
-        private async Task<Stack> TrackStackUpdate(Module module, string stackId, string mostRecentStackEventId) {
+        private async Task<(Stack Stack, bool Success)> TrackStackUpdate(Module module, string stackId, string mostRecentStackEventId) {
             var seenEventIds = new HashSet<string>();
             var foundMostRecentStackEvent = (mostRecentStackEventId == null);
             var request = new DescribeStackEventsRequest {
@@ -258,6 +274,7 @@ namespace MindTouch.LambdaSharp.Tool.Internal {
 
             // iterate as long as the stack is being created/updated
             var active = true;
+            var success = false;
             while(active) {
                 await Task.Delay(TimeSpan.FromSeconds(3));
 
@@ -278,7 +295,7 @@ namespace MindTouch.LambdaSharp.Tool.Internal {
                 }
                 if(!foundMostRecentStackEvent) {
                     module.Settings.AddError("unable to find starting event");
-                    return null;
+                    return (Stack: null, Success: false);
                 }
 
                 // report only on new events
@@ -293,6 +310,7 @@ namespace MindTouch.LambdaSharp.Tool.Internal {
 
                         // event signals stack creation/update completion; time to stop
                         active = false;
+                        success = IsSuccessfulFinalStackEvent(evt);
                         break;
                     }
                 }
@@ -302,7 +320,7 @@ namespace MindTouch.LambdaSharp.Tool.Internal {
             var description = await module.Settings.CfClient.DescribeStacksAsync(new DescribeStacksRequest {
                 StackName = stackId
             });
-            return description.Stacks.FirstOrDefault();
+            return (Stack: description.Stacks.FirstOrDefault(), Success: success);
         }
     }
 }

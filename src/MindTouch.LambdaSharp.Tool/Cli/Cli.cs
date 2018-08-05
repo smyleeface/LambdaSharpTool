@@ -56,9 +56,10 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                     Console.WriteLine("ERROR: " + error.Message);
                 }
             }
-            if(_errors.Any(error => error.Exception is LambdaSharpEnvironmentSetupException)) {
+            var setupException = _errors.Select(error => error.Exception).OfType<LambdaSharpDeploymentTierSetupException>().FirstOrDefault();
+            if(setupException != null) {
                 Console.WriteLine();
-                Console.WriteLine("IMPORTANT: complete the LambdaSharp bootstrap procedure to initialize the LambdaSharp Environment.");
+                Console.WriteLine($"IMPORTANT: complete the LambdaSharp Environment bootstrap procedure for deployment tier '{setupException.Tier}'");
             }
         }
 

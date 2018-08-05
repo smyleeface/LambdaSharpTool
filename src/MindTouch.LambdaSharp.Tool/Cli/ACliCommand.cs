@@ -40,7 +40,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
     public abstract class ACliCommand : CliBase {
 
         //--- Methods ---
-        protected Func<Task<Settings>> CreateSettingsInitializer(CommandLineApplication cmd) {
+        protected Func<Task<IEnumerable<Settings>>> CreateSettingsInitializer(CommandLineApplication cmd) {
             var tierOption = cmd.Option("--tier|-T <NAME>", "(optional) Name of deployment tier (default: LAMBDASHARPTIER environment variable)", CommandOptionType.SingleValue);
             var awsProfileOption = cmd.Option("--profile|-P <NAME>", "(optional) Use a specific AWS profile from the AWS credentials file", CommandOptionType.SingleValue);
             var verboseLevelOption = cmd.Option("--verbose|-V:<LEVEL>", "(optional) Show verbose output (0=quiet, 1=normal, 2=detailed, 3=exceptions)", CommandOptionType.SingleOrNoValue);
@@ -56,7 +56,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
             var deploymentS3PackageLoaderCustomResourceTopicArnOption = cmd.Option("--deployment-s3packageloader-customresource-topic-arn <ARN>", "(test only) SNS Topic for deploying packages to S3 buckets (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
             var inputFileOption = cmd.Option("--input <FILE>", "(optional) File path to YAML module file (default: Deploy.yml)", CommandOptionType.SingleValue);
             inputFileOption.ShowInHelpText = false;
-            var cmdArgument = cmd.Argument("<FILE>", "(optional) File path to YAML module file (default: Deploy.yml)", multipleValues: false);
+            var cmdArgument = cmd.Argument("<FILE>", "(optional) File path to YAML module file (default: Deploy.yml)", multipleValues: true);
             return async () => {
 
                 // initialize logging level
@@ -127,7 +127,16 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                     AddError("cannot specify --input and an argument at the same time");
                     return null;
                 }
-                var moduleFilename = cmdArgument.Values.FirstOrDefault() ?? inputFileOption.Value();
+                var moduleFilenames = new List<string>();
+                if(inputFileOption.HasValue()) {
+                    moduleFilenames.Add(inputFileOption.Value());
+                } else if(cmdArgument.Values.Any()) {
+                    moduleFilenames.AddRange(cmdArgument.Values);
+                } else {
+
+                    // add default entry so we can generate at least one settings instance
+                    moduleFilenames.Add(null);
+                }
 
                 // create AWS clients
                 var ssmClient = new AmazonSimpleSystemsManagementClient();
@@ -143,29 +152,35 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                 var deploymentNotificationTopicArn = deploymentNotificationTopicArnOption.Value();
                 var deploymentRollbarCustomResourceTopicArn = deploymentRollbarCustomResourceTopicArnOption.Value();
                 var deploymentS3PackageLoaderCustomResourceTopicArn = deploymentS3PackageLoaderCustomResourceTopicArnOption.Value();
-                return new Settings {
-                    ToolVersion = new Version(Version.Major, Version.Minor),
-                    EnvironmentVersion = (deploymentVersion != null) ? new Version(deploymentVersion) : null,
-                    Tier = tier,
-                    GitSha = gitSha,
-                    AwsRegion = awsRegion,
-                    AwsAccountId = awsAccountId,
-                    DeploymentBucketName = deploymentBucketName,
-                    DeadLetterQueueUrl = deploymentDeadletterQueueUrl,
-                    LoggingTopicArn = deploymentLoggingTopicArn,
-                    NotificationTopicArn = deploymentNotificationTopicArn,
-                    RollbarCustomResourceTopicArn = deploymentRollbarCustomResourceTopicArn,
-                    S3PackageLoaderCustomResourceTopicArn = deploymentS3PackageLoaderCustomResourceTopicArn,
-                    ModuleFileName = (moduleFilename != null) ? Path.GetFullPath(moduleFilename) : null,
-                    WorkingDirectory = (moduleFilename != null) ? Path.GetDirectoryName(moduleFilename) : Directory.GetCurrentDirectory(),
-                    ResourceMapping = new ResourceMapping(),
-                    SsmClient = ssmClient,
-                    CfClient = cfClient,
-                    KmsClient = kmsClient,
-                    S3Client = s3Client,
-                    ErrorCallback = AddError,
-                    VerboseLevel = _verboseLevel
-                };
+
+                // create a settings entry for each module filename
+                var result = new List<Settings>();
+                foreach(var moduleFilename in moduleFilenames) {
+                    result.Add(new Settings {
+                        ToolVersion = new Version(Version.Major, Version.Minor),
+                        EnvironmentVersion = (deploymentVersion != null) ? new Version(deploymentVersion) : null,
+                        Tier = tier,
+                        GitSha = gitSha,
+                        AwsRegion = awsRegion,
+                        AwsAccountId = awsAccountId,
+                        DeploymentBucketName = deploymentBucketName,
+                        DeadLetterQueueUrl = deploymentDeadletterQueueUrl,
+                        LoggingTopicArn = deploymentLoggingTopicArn,
+                        NotificationTopicArn = deploymentNotificationTopicArn,
+                        RollbarCustomResourceTopicArn = deploymentRollbarCustomResourceTopicArn,
+                        S3PackageLoaderCustomResourceTopicArn = deploymentS3PackageLoaderCustomResourceTopicArn,
+                        ModuleFileName = (moduleFilename != null) ? Path.GetFullPath(moduleFilename) : null,
+                        WorkingDirectory = (moduleFilename != null) ? Path.GetDirectoryName(moduleFilename) : Directory.GetCurrentDirectory(),
+                        ResourceMapping = new ResourceMapping(),
+                        SsmClient = ssmClient,
+                        CfClient = cfClient,
+                        KmsClient = kmsClient,
+                        S3Client = s3Client,
+                        ErrorCallback = AddError,
+                        VerboseLevel = _verboseLevel
+                    });
+                }
+                return result;
             };
         }
 

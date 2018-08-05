@@ -21,6 +21,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Amazon.SimpleSystemsManagement;
 using McMaster.Extensions.CommandLineUtils;
@@ -44,7 +45,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                     if(settings == null) {
                         return;
                     }
-                    await Info(settings);
+                    await Info(settings.First());
                 });
             });
         }

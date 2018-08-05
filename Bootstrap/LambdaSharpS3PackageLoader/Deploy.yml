@@ -1,5 +1,7 @@
 Name: LambdaSharpS3PackageLoader
 
+Version: 0.2
+
 Description: LambdaSharp resource handler for S3 Packages
 
 Parameters:
