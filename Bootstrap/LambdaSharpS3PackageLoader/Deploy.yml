@@ -14,7 +14,7 @@ Parameters:
       Allow: ReadWrite
 
   - Name: S3PackageLoaderCustomResourceTopic
-    Description: Custom resource topic for synchronizaing packages with S3 buckets
+    Description: Custom resource topic for deploying packages to S3 buckets
     Export: /{{Tier}}/LambdaSharp/S3PackageLoaderCustomResourceTopic
     Resource:
       Type: AWS::SNS::Topic

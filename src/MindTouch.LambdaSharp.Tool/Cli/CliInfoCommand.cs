@@ -61,7 +61,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                     settings.EnvironmentVersion = new Version(version);
                 }
             }
-            settings.BucketName = settings.BucketName ?? GetLambdaSharpSetting("DeploymentBucket");
+            settings.DeploymentBucketName = settings.DeploymentBucketName ?? GetLambdaSharpSetting("DeploymentBucket");
             settings.DeadLetterQueueUrl = settings.DeadLetterQueueUrl ?? GetLambdaSharpSetting("DeadLetterQueue");
             settings.LoggingTopicArn = settings.LoggingTopicArn ?? GetLambdaSharpSetting("LoggingTopic");
             settings.NotificationTopicArn = settings.NotificationTopicArn ?? GetLambdaSharpSetting("DeploymentNotificationTopic");
@@ -74,7 +74,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
             Console.WriteLine($"AWS Region: {settings.AwsRegion ?? "<NOT SET>"}");
             Console.WriteLine($"AWS Account Id: {settings.AwsAccountId ?? "<NOT SET>"}");
             Console.WriteLine($"LambdaSharp Environment Version: {settings.EnvironmentVersion?.ToString() ?? "<NOT SET>"}");
-            Console.WriteLine($"LambdaSharp S3 Bucket: {settings.BucketName ?? "<NOT SET>"}");
+            Console.WriteLine($"LambdaSharp S3 Bucket: {settings.DeploymentBucketName ?? "<NOT SET>"}");
             Console.WriteLine($"LambdaSharp Dead-Letter Queue: {settings.DeadLetterQueueUrl ?? "<NOT SET>"}");
             Console.WriteLine($"LambdaSharp Logging Topic: {settings.LoggingTopicArn ?? "<NOT SET>"}");
             Console.WriteLine($"LambdaSharp CloudFormation Notification Topic: {settings.NotificationTopicArn ?? "<NOT SET>"}");

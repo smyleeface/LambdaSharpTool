@@ -57,10 +57,6 @@ namespace MindTouch.LambdaSharp.Tool.Internal {
 
         //--- Methods ---
         public async Task<bool> Deploy(Module module, string template, bool allowDataLoss) {
-            if(module.Functions.Any() && (module.Settings.BucketName == null)) {
-                module.Settings.AddError($"cannot deploy functions without '/{module.Settings.Tier}/LambdaSharp/DeploymentBucket' being set");
-                return false;
-            }
             var stackName = $"{module.Settings.Tier}-{module.Name}";
             Console.WriteLine($"Deploying stack: {stackName}");
 
@@ -68,7 +64,7 @@ namespace MindTouch.LambdaSharp.Tool.Internal {
             var transferUtility = new TransferUtility(module.Settings.S3Client);
             foreach(var function in module.Functions) {
                 await UploadPackage(
-                    module.Settings.BucketName,
+                    module.Settings.DeploymentBucketName,
                     function.PackageS3Key,
                     function.Package,
                     "Lambda function"
@@ -78,7 +74,7 @@ namespace MindTouch.LambdaSharp.Tool.Internal {
             // upload data packages (NOTE: packages are cannot be nested, so just enumerate the top level parameters)
             foreach(var package in module.Parameters.OfType<PackageParameter>()) {
                 await UploadPackage(
-                    module.Settings.BucketName,
+                    module.Settings.DeploymentBucketName,
                     package.PackageS3Key,
                     package.Package,
                     "package"
@@ -109,15 +105,15 @@ namespace MindTouch.LambdaSharp.Tool.Internal {
 
             // upload cloudformation template
             string templateUrl = null;
-            if(module.Settings.BucketName != null) {
+            if(module.Settings.DeploymentBucketName != null) {
                 var templateFile = Path.GetTempFileName();
                 var templateSuffix = module.Settings.GitSha ?? ("UTC" + DateTime.UtcNow.ToString("yyyyMMddhhmmss"));
                 var templateS3Key = $"{module.Name}/cloudformation-{templateSuffix}.json";
-                templateUrl = $"https://s3.amazonaws.com/{module.Settings.BucketName}/{templateS3Key}";
+                templateUrl = $"https://s3.amazonaws.com/{module.Settings.DeploymentBucketName}/{templateS3Key}";
                 try {
-                    Console.WriteLine($"=> Uploading CloudFormation template: s3://{module.Settings.BucketName}/{templateS3Key}");
+                    Console.WriteLine($"=> Uploading CloudFormation template: s3://{module.Settings.DeploymentBucketName}/{templateS3Key}");
                     File.WriteAllText(templateFile, template);
-                    await transferUtility.UploadAsync(templateFile, module.Settings.BucketName, templateS3Key);
+                    await transferUtility.UploadAsync(templateFile, module.Settings.DeploymentBucketName, templateS3Key);
                 } finally {
                     try {
                         File.Delete(templateFile);

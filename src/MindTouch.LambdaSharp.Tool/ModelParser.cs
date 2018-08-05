@@ -163,7 +163,7 @@ namespace MindTouch.LambdaSharp.Tool {
                 AtLocation("Functions", () => {
 
                     // check if a deployment bucket was specified
-                    if(_module.Settings.BucketName == null) {
+                    if(_module.Settings.DeploymentBucketName == null) {
                         AddError("deploying functions requires a deployment bucket");
                     }
                 });
@@ -399,7 +399,13 @@ namespace MindTouch.LambdaSharp.Tool {
                             var files = new List<string>();
                             AtLocation("Package", () => {
 
-                                // check if S3 sync topic arn exists
+                                // check if a deployment bucket exists
+                                if(_module.Settings.DeploymentBucketName == null) {
+                                    AddError("deploying functions requires a deployment bucket");
+                                    return;
+                                }
+
+                                // check if S3 package loader topic arn exists
                                 if(_module.Settings.S3PackageLoaderCustomResourceTopicArn == null) {
                                     AddError("parameter package requires S3PackageLoader custom resource handler to be deployed");
                                     return;
@@ -1098,7 +1104,7 @@ namespace MindTouch.LambdaSharp.Tool {
             var lambdaSharpPath = $"/{Settings.Tier}/LambdaSharp/";
             if(
                 (Settings.EnvironmentVersion == null)
-                || (Settings.BucketName == null)
+                || (Settings.DeploymentBucketName == null)
                 || (Settings.DeadLetterQueueUrl == null)
                 || (Settings.LoggingTopicArn == null)
                 || (Settings.NotificationTopicArn == null)
@@ -1125,7 +1131,7 @@ namespace MindTouch.LambdaSharp.Tool {
                         Settings.EnvironmentVersion = new Version(version);
                     }
                 }
-                Settings.BucketName = Settings.BucketName ?? GetLambdaSharpSetting("DeploymentBucket");
+                Settings.DeploymentBucketName = Settings.DeploymentBucketName ?? GetLambdaSharpSetting("DeploymentBucket");
                 Settings.DeadLetterQueueUrl = Settings.DeadLetterQueueUrl ?? GetLambdaSharpSetting("DeadLetterQueue");
                 Settings.LoggingTopicArn = Settings.LoggingTopicArn ?? GetLambdaSharpSetting("LoggingTopic");
                 Settings.NotificationTopicArn = Settings.NotificationTopicArn ?? GetLambdaSharpSetting("DeploymentNotificationTopic");
@@ -1140,9 +1146,6 @@ namespace MindTouch.LambdaSharp.Tool {
                     || (Settings.EnvironmentVersion.Minor != Settings.ToolVersion.Minor)
                 ) {
                     AddError($"LambdaSharp Tool (v{Settings.ToolVersion}) and Environment (v{Settings.EnvironmentVersion}) Versions do not match");
-                }
-                if(Settings.BucketName == null) {
-                    AddError("unable to determine the LambdaSharp S3 Bucket");
                 }
                 if(Settings.DeadLetterQueueUrl == null) {
                     AddError("unable to determine the LambdaSharp Dead-Letter Queue");

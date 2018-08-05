@@ -38,7 +38,7 @@ namespace MindTouch.LambdaSharp.Tool {
         public string GitSha { get; set; }
         public string AwsRegion { get; set; }
         public string AwsAccountId { get; set; }
-        public string BucketName { get; set; }
+        public string DeploymentBucketName { get; set; }
         public string DeadLetterQueueUrl { get; set; }
         public string LoggingTopicArn { get; set; }
         public string NotificationTopicArn { get; set; }
