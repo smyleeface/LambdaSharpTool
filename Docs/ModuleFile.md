@@ -15,6 +15,7 @@ __Table of Contents__
 
 ```yaml
 Name: String
+Version: String
 Description: String
 Variables: 
   VariableDefinitions
@@ -29,9 +30,20 @@ Functions:
 <dl>
 <dt><tt>Name</tt></dt>
 <dd>
-The <tt>Name</tt> attribute is used as prefix for CloudFormation resources, as well as to access to the parameter store.
+The <tt>Name</tt> attribute defines the name of the λ# module. It is used as prefix for CloudFormation resources, as well as to access to the parameter store. The module name can be accessed as a variable in string substitutions using the <tt>{{Module}}</tt> notation.
 
 <i>Required:</i> Yes
+
+<i>Type:</i> String
+</dd>
+
+<dt><tt>Version</tt></dt>
+<dd>
+The <tt>Version</tt> attribute defines the version of the λ# module. It is exported to the parameter store to track the version of deployed modules. The module version can be accessed as a variable in string substitutions using the <tt>{{Version}}</tt> notation.
+
+The format of the version must be <tt>Major.Minor[.Build[.Revision]]</tt>. Components in square brackets (<tt>[]</tt>) are optional and can be omitted.
+
+<i>Required:</i> No
 
 <i>Type:</i> String
 </dd>
@@ -89,6 +101,7 @@ The `Variables` sections is an optional mapping of key-value pairs. Variables ar
 The following variables are implicitly defined and can be used in text values to dynamically compute the correct value.
 * `{{Tier}}`: the name of the active deployment tier
 * `{{Module}}`: the name of the λ# module
+* `{{Version}}`: the version of the λ# module
 * `{{AwsAccountId}}`: the AWS account ID
 * `{{AwsRegion}}`: the AWS region
 * `{{GitSha}}`: Git SHA (40 characters)

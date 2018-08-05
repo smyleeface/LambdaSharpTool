@@ -1,16 +1,10 @@
 Name: LambdaSharp
 
-Variables:
-  Version: 0.2
+Version: 0.2
 
 Description: LambdaSharp Environment (v{{Version}})
 
 Parameters:
-
-  - Name: Version
-    Description: LambdaSharp Environment version
-    Value: "{{Version}}"
-    Export: Version
 
   - Name: DeadLetterQueue
     Description: SQS queue used by LambdaSharp functions for failed messages

@@ -68,7 +68,7 @@ namespace MindTouch.LambdaSharp.Tool {
             var variables = new Dictionary<string, string>();
             if(outputDocument.Values.FirstOrDefault() is YamlMap rootMap) {
 
-                // find `Variables` section
+                // find optional `Variables` section
                 var variablesEntry = rootMap.Entries.FirstOrDefault(entry => entry.Key.Scalar.Value == "Variables");
                 if(variablesEntry.Value != null) {
 
@@ -99,9 +99,19 @@ namespace MindTouch.LambdaSharp.Tool {
                 var nameEntry = rootMap.Entries.FirstOrDefault(entry => entry.Key.Scalar.Value == "Name");
                 AtLocation("Name", () => {
                     if(nameEntry.Value is YamlScalar nameScaler) {
-                        variables["Name"] = nameScaler.Scalar.Value;
+                        variables["Module"] = nameScaler.Scalar.Value;
                     } else {
                         AddError("`Name` attribute expected to be a string");
+                    }
+                });
+
+                // find optional `Version` attribute
+                var versionEntry = rootMap.Entries.FirstOrDefault(entry => entry.Key.Scalar.Value == "Version");
+                AtLocation("Version", () => {
+                    if(versionEntry.Value is YamlScalar versionScalar) {
+                        variables["Version"] = versionScalar.Scalar.Value;
+                    } else {
+                        AddError("`Version` attribute expected to be a string");
                     }
                 });
             }
@@ -122,7 +132,7 @@ namespace MindTouch.LambdaSharp.Tool {
                 .Where(kv => !Regex.IsMatch(kv.Value, VARIABLE_PATTERN))
                 .ToDictionary(kv => kv.Key, kv => kv.Value);
 
-            // attempt to converte all bound variables to free variables
+            // attempt to convert all bound variables to free variables
             AtLocation("Variables", () => {
                 bool progress;
                 do {

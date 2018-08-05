@@ -69,9 +69,9 @@ namespace MindTouch.LambdaSharp.Tool {
             _importer = new ImportResolver(Settings.SsmClient);
 
             // parse YAML file into module AST
-            ModuleNode appNode;
+            ModuleNode module;
             try {
-                appNode = new DeserializerBuilder()
+                module = new DeserializerBuilder()
                     .WithNamingConvention(new PascalCaseNamingConvention())
                     .Build()
                     .Deserialize<ModuleNode>(yamlParser);
@@ -80,14 +80,9 @@ namespace MindTouch.LambdaSharp.Tool {
                 return null;
             }
 
-            // 'Version' attribute is obsolete
-            if(appNode.Version != null) {
-                AddError("the 'Version' attribute is no longer supported");
-            }
-
             // convert module file
             try {
-                return Convert(appNode);
+                return Convert(module);
             } catch(Exception e) {
                 AddError($"internal error: {e.Message}", e);
                 return null;
@@ -114,6 +109,22 @@ namespace MindTouch.LambdaSharp.Tool {
                 Settings = Settings,
                 Description = module.Description
             };
+
+            // convert 'Version' attribute to implicit 'Version' parameter
+            if(module.Version == null) {
+                Console.WriteLine();
+                module.Version = "0.0.0.0";
+            }
+            if(Version.TryParse(module.Version, out System.Version _)) {
+                module.Parameters.Add(new ParameterNode {
+                    Name = "Version",
+                    Value = module.Version,
+                    Description = "LambdaSharp module version",
+                    Export = "Version"
+                });
+            } else {
+                AddError("`Version` expected to have format: Major.Minor[.Build[.Revision]]");
+            }
 
             // resolve all imported parameters
             ImportValuesFromParameterStore(module);
