@@ -107,13 +107,15 @@ namespace MindTouch.LambdaSharp.Tool {
 
                 // find optional `Version` attribute
                 var versionEntry = rootMap.Entries.FirstOrDefault(entry => entry.Key.Scalar.Value == "Version");
-                AtLocation("Version", () => {
-                    if(versionEntry.Value is YamlScalar versionScalar) {
-                        variables["Version"] = versionScalar.Scalar.Value;
-                    } else {
-                        AddError("`Version` attribute expected to be a string");
-                    }
-                });
+                if(versionEntry.Value != null) {
+                    AtLocation("Version", () => {
+                        if(versionEntry.Value is YamlScalar versionScalar) {
+                            variables["Version"] = versionScalar.Scalar.Value;
+                        } else {
+                            AddError("`Version` attribute expected to be a string");
+                        }
+                    });
+                }
             }
 
             // add built-in variables
