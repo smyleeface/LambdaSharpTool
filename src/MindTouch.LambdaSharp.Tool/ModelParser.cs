@@ -151,7 +151,11 @@ namespace MindTouch.LambdaSharp.Tool {
                         Properties = new Dictionary<string, object> {
                             ["ServiceToken"] = _module.Settings.RollbarCustomResourceTopicArn,
                             ["Tier"] = _module.Settings.Tier,
-                            ["Module"] = _module.Name
+                            ["Module"] = _module.Name,
+
+                            // NOTE (2018-08-05, bjorg): set old values for backwards compatibility
+                            ["Project"] = _module.Name,
+                            ["Deployment"] = _module.Settings.Tier
                         }
                     }
                 });
