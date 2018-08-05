@@ -98,7 +98,7 @@ namespace MindTouch.LambdaSharp.Tool {
                 AddParameter(parameter, "", "STACK_", environmentRefVariable);
             }
 
-            // check if we need to create a  module IAM role (only needed by functions)
+            // check if we need to create a module IAM role (only needed by functions)
             if(_module.Functions.Any()) {
                 _apiGatewayRoutes = new List<ApiRoute>();
                 _resourceStatements.Add(new Statement {

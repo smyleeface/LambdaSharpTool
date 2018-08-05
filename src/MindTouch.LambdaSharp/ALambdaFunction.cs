@@ -55,7 +55,7 @@ namespace MindTouch.LambdaSharp {
         private readonly ILambdaConfigSource _envSource;
         private IRollbarClient _rollbarClient;
         private string _deadLetterQueueUrl;
-        private string _loggingTopic;
+        private string _loggingTopicArn;
         private bool _initialized;
         private LambdaConfig _appConfig;
         private string _tier;
@@ -130,12 +130,12 @@ namespace MindTouch.LambdaSharp {
             _tier = envSource.Read("TIER");
             _module = envSource.Read("MODULE");
             _deadLetterQueueUrl = envSource.Read("DEADLETTERQUEUE");
-            _loggingTopic = envSource.Read("LOGGINGTOPIC");
+            _loggingTopicArn = envSource.Read("LOGGINGTOPIC");
             var framework = envSource.Read("LAMBDARUNTIME");
             LogInfo($"TIER = {_tier}");
             LogInfo($"MODULE = {_module}");
             LogInfo($"DEADLETTERQUEUE = {_deadLetterQueueUrl ?? "NONE"}");
-            LogInfo($"LOGGINGTOPIC = {_loggingTopic ?? "NONE"}");
+            LogInfo($"LOGGINGTOPIC = {_loggingTopicArn ?? "NONE"}");
 
             // read optional git-sha file
             var gitsha = File.Exists("gitsha.txt") ? File.ReadAllText("gitsha.txt") : null;
@@ -251,11 +251,11 @@ namespace MindTouch.LambdaSharp {
                     } catch(Exception e) {
                         Log(LambdaLogLevel.ERROR, $"rollbar client exception", e.ToString());
                     }
-                } else if(_loggingTopic != null) {
+                } else if(_loggingTopicArn != null) {
 
                     // send exception to error-topic
                     _snsClient.PublishAsync(new PublishRequest {
-                        TopicArn = _loggingTopic,
+                        TopicArn = _loggingTopicArn,
                         Message = _rollbarClient.CreatePayload(MAX_SNS_SIZE, level.ToString(), exception, format, args),
                         MessageAttributes = new Dictionary<string, MessageAttributeValue> {
                             ["Tier"] = new MessageAttributeValue {
