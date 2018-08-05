@@ -37,12 +37,9 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
             app.Command("deploy", cmd => {
                 cmd.HelpOption();
                 cmd.Description = "Deploy LambdaSharp module";
-                var inputFileOption = cmd.Option("--input <FILE>", "(optional) File path to YAML module file (default: Deploy.yml)", CommandOptionType.SingleValue);
-                inputFileOption.ShowInHelpText = false;
                 var dryRunOption = cmd.Option("--dryrun:<LEVEL>", "(optional) Generate output assets without deploying (0=everything, 1=cloudformation)", CommandOptionType.SingleOrNoValue);
                 var outputFilename = cmd.Option("--output <FILE>", "(optional) Name of generated CloudFormation template file (default: cloudformation.json)", CommandOptionType.SingleValue);
                 var allowDataLossOption = cmd.Option("--allow-data-loss", "(optional) Allow CloudFormation resource update operations that could lead to data loss", CommandOptionType.NoValue);
-                var cmdArgument = cmd.Argument("<FILE>", "(optional) File path to YAML module file (default: Deploy.yml)", multipleValues: false);
                 var initSettingsCallback = CreateSettingsInitializer(cmd);
                 cmd.OnExecute(async () => {
                     Console.WriteLine($"{app.FullName} - {cmd.Description}");
@@ -53,30 +50,10 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                         return;
                     }
                     var validated = true;
-                    if(settings.Version == null) {
-                        AddError("unable to determine the LambdaSharp Environment Version");
-                        validated = false;
-                    } else if(
-                        (settings.Version.Major != _version.Major) 
-                        || (settings.Version.Minor != _version.Minor)
-                    ) {
-                        AddError("LambdaSharp Tool and Environment Versions do not match");
-                        validated = false;
-                    }
-                    if(settings.BucketName == null) {
-                        AddError("unable to determine the LambdaSharp S3 Bucket");
-                        validated = false;
-                    }
-                    if(settings.DeadLetterQueueUrl == null) {
-                        AddError("unable to determine the LambdaSharp Dead-Letter Queue");
-                        validated = false;
-                    }
-                    if(settings.LoggingTopicArn == null) {
-                        AddError("unable to determine the LambdaSharp Logging Topic");
-                        validated = false;
-                    }
-                    if(settings.NotificationTopicArn == null) {
-                        AddError("unable to determine the LambdaSharp CloudFormation Notification Topic");
+                    if((settings.ModuleFileName == null) && File.Exists("Deploy.yml")) {
+                        settings.ModuleFileName = Path.GetFullPath("Deploy.yml");
+                    } else if((settings.ModuleFileName == null) || !File.Exists(settings.ModuleFileName)) {
+                        AddError($"could not find '{settings.ModuleFileName ?? Path.GetFullPath("Deploy.yml")}'");
                         validated = false;
                     }
                     if(!validated) {
@@ -86,18 +63,14 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                     if(dryRunOption.HasValue()) {
                         DryRunLevel value;
                         if(!TryParseEnumOption(dryRunOption, DryRunLevel.Everything, out value)) {
+
+                            // NOTE (2018-08-04, bjorg): no need to add an error message since it's already added by `TryParseEnumOption`
                             return;
                         }
                         dryRun = value;
                     }
-                    if(cmdArgument.Values.Any() && inputFileOption.HasValue()) {
-                        AddError("cannot specify --input and an argument at the same time");
-                        return;
-                    }
-                    var inputFile = cmdArgument.Values.FirstOrDefault() ?? inputFileOption.Value() ?? "Deploy.yml";
                     await Deploy(
                         settings,
-                        inputFile,
                         dryRun,
                         outputFilename.Value() ?? "cloudformation.json",
                         allowDataLossOption.HasValue()
@@ -108,42 +81,31 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
 
         private async Task Deploy(
             Settings settings,
-            string inputFile,
             DryRunLevel? dryRun,
             string outputFilename,
             bool allowDataLoos
         ) {
-            if(settings == null) {
-                return;
-            }
             var stopwatch = Stopwatch.StartNew();
 
             // read input file
-            settings.ModuleFileName = Path.GetFullPath(inputFile);
-            settings.WorkingDirectory = Path.GetDirectoryName(settings.ModuleFileName);
-            if(!File.Exists(settings.ModuleFileName)) {
-                AddError($"could not find '{settings.ModuleFileName}'");
-                return;
-            }
-            Console.WriteLine($"Processing module: {Path.Combine(settings.WorkingDirectory, inputFile)}");
+            Console.WriteLine($"Processing module: {settings.ModuleFileName}");
             var source = await File.ReadAllTextAsync(settings.ModuleFileName);
 
             // preprocess file
-            var parser = new ModelPreprocessor(settings).Preprocess(source);
-            if(_errors.Any()) {
+            var tokenStream = new ModelPreprocessor(settings).Preprocess(source);
+            if(ErrorCount > 0) {
                 return;
             }
 
             // parse yaml module file
-            var module = new ModelParser(settings).Parse(parser, dryRun == DryRunLevel.CloudFormation);
-            if(_errors.Any()) {
+            var module = new ModelParser(settings).Parse(tokenStream, skipCompile: dryRun == DryRunLevel.CloudFormation);
+            if(ErrorCount > 0) {
                 return;
             }
 
             // generate cloudformation template
-            var generator = new ModelGenerator();
-            var stack = generator.Generate(module);
-            if(_errors.Any()) {
+            var stack = new ModelGenerator().Generate(module);
+            if(ErrorCount > 0) {
                 return;
             }
 

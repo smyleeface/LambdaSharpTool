@@ -183,13 +183,10 @@ namespace MindTouch.LambdaSharp.Tool.Internal {
                         },
                         NotificationARNs = notificationArns,
                         StackPolicyBody = stackPolicyBody,
-                        StackPolicyDuringUpdateBody = allowDataLoss ? stackDuringUpdatePolicyBody : null
+                        StackPolicyDuringUpdateBody = allowDataLoss ? stackDuringUpdatePolicyBody : null,
+                        TemplateURL = templateUrl,
+                        TemplateBody = (templateUrl == null) ? template : null
                     };
-                    if(templateUrl != null) {
-                        request.TemplateURL = templateUrl;
-                    } else {
-                        request.TemplateBody = template;
-                    }
                     var response = await module.Settings.CfClient.UpdateStackAsync(request);
                     var stack = await TrackStackUpdate(module, response.StackId, mostRecentStackEventId);
                     Console.WriteLine($"=> Stack update finished (finished: {DateTime.Now:yyyy-MM-dd HH:mm:ss})");
@@ -209,13 +206,10 @@ namespace MindTouch.LambdaSharp.Tool.Internal {
                     OnFailure = OnFailure.DELETE,
                     NotificationARNs = notificationArns,
                     StackPolicyBody = stackPolicyBody,
-                    EnableTerminationProtection = true
+                    EnableTerminationProtection = true,
+                    TemplateURL = templateUrl,
+                    TemplateBody = (templateUrl == null) ? template : null
                 };
-                if(templateUrl != null) {
-                    request.TemplateURL = templateUrl;
-                } else {
-                    request.TemplateBody = template;
-                }
                 var response = await module.Settings.CfClient.CreateStackAsync(request);
                 var stack = await TrackStackUpdate(module, response.StackId, mostRecentStackEventId);
                 Console.WriteLine($"=> Stack creation finished (finished: {DateTime.Now:yyyy-MM-dd HH:mm:ss})");

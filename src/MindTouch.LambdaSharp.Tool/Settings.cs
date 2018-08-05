@@ -32,7 +32,8 @@ namespace MindTouch.LambdaSharp.Tool {
     public class Settings {
 
         //--- Properties ---
-        public Version Version { get; set; }
+        public Version ToolVersion { get; set; }
+        public Version EnvironmentVersion { get; set; }
         public string Tier { get; set; }
         public string GitSha { get; set; }
         public string AwsRegion { get; set; }

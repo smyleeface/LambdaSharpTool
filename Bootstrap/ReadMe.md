@@ -51,7 +51,7 @@ Commands:
 Run 'MindTouch.LambdaSharp.Tool [command] --help' for more information about a command.
 ```
 
-## 2) λ# Bootstrap
+## 2) Deploy λ# Environment
 
 The λ# environment requires an AWS account to be setup for each deployment tier (e.g. `Test`, `Stage`, `Prod`, etc.). Once setup, λ# modules can be deployed.
 
@@ -59,12 +59,11 @@ The following command creates the AWS resources needed to deploy λ# modules, su
 
 ```bash
 lash deploy \
-    --bootstrap \
     --tier Demo \
     $LAMBDASHARP/Bootstrap/LambdaSharp/Deploy.yml
 ```
 
-## 3) λ# S3 Package Loader
+## 3) Deploy λ# S3 Package Loader
 
 λ# includes an AWS Custom Resource handler to upload files to S3 Buckets as part of the deployment process. The following command deploys the custom resource handler. Once deployed, all subsequent λ# modules can deploy packages to S3 buckets.
 

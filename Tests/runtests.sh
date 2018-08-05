@@ -15,7 +15,6 @@ lash() {
         --tier Test \
         --output $1-CF.json \
         --dryrun:cloudformation \
-        --bootstrap \
         --aws-account-id 123456789012 \
         --aws-region us-east-1 \
         --deployment-version 0.2 \

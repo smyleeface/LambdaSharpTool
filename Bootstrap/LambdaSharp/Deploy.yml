@@ -1,12 +1,15 @@
 Name: LambdaSharp
 
-Description: AWS assets required by LambdaSharp modules
+Variables:
+  Version: 0.2
+
+Description: LambdaSharp Environment (v{{Version}})
 
 Parameters:
 
   - Name: Version
-    Description: LambdaSharp environment version
-    Value: 0.2
+    Description: LambdaSharp Environment version
+    Value: "{{Version}}"
     Export: Version
 
   - Name: DeadLetterQueue

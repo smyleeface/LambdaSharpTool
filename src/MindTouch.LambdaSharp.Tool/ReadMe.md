@@ -75,8 +75,6 @@ lash deploy Deploy.yml
 <dd>(test only) SNS topic used by LambdaSharp functions to log warnings and errors (default: read from LambdaSharp configuration)</dd>
 <dt><tt>--deployment-notification-topic-arn &lt;ARN&gt;</tt></dt>
 <dd>(test only) SNS Topic used by CloudFormation deployments (default: read from LambdaSharp configuration)</dd>
-<dt><tt>--bootstrap</tt></dt>
-<dd>(bootstrap only) Don't read LambdaSharp initialization values</dd>
 </dl>
 
 ## Info Command
@@ -136,8 +134,6 @@ LambdaSharp Rollbar Custom Resource Topic: arn:aws:sns:us-east-1:123456789012:La
 <dd>(test only) SNS topic used by LambdaSharp functions to log warnings and errors (default: read from LambdaSharp configuration)</dd>
 <dt><tt>--deployment-notification-topic-arn &lt;ARN&gt;</tt></dt>
 <dd>(test only) SNS Topic used by CloudFormation deployments (default: read from LambdaSharp configuration)</dd>
-<dt><tt>--bootstrap</tt></dt>
-<dd>(bootstrap only) Don't read LambdaSharp initialization values</dd>
 </dl>
 
 ## New Function Command

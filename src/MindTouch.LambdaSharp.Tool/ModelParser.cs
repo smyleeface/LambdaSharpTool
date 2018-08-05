@@ -55,17 +55,17 @@ namespace MindTouch.LambdaSharp.Tool {
         //--- Fields ---
         private Module _module;
         private ImportResolver _importer;
-        private bool _noCompile;
+        private bool _skipCompile;
 
         //--- Constructors ---
         public ModelParser(Settings settings) : base(settings) { }
 
         //--- Methods ---
-        public Module Parse(YamlDotNet.Core.IParser yamlParser, bool noCompile) {
+        public Module Parse(YamlDotNet.Core.IParser yamlParser, bool skipCompile) {
             _module = new Module {
                 Settings = Settings
             };
-            _noCompile = noCompile;
+            _skipCompile = skipCompile;
             _importer = new ImportResolver(Settings.SsmClient);
 
             // parse YAML file into module AST
@@ -115,6 +115,9 @@ namespace MindTouch.LambdaSharp.Tool {
                 Description = module.Description
             };
 
+            // resolve all imported parameters
+            ImportValuesFromParameterStore(module);
+
             // convert secrets
             var secretIndex = 0;
             _module.Secrets = AtLocation("Secrets", () => module.Secrets
@@ -133,7 +136,7 @@ namespace MindTouch.LambdaSharp.Tool {
                     Name = "RollbarToken",
                     Description = "Rollbar project token",
                     Resource = new ResourceNode {
-                        Type = "LambdaSharp::RollbarProject",
+                        Type = "Custom::LambdaSharpRollbarProject",
                         Allow = "None",
                         Properties = new Dictionary<string, object> {
                             ["ServiceToken"] = _module.Settings.RollbarCustomResourceTopicArn,
@@ -143,9 +146,6 @@ namespace MindTouch.LambdaSharp.Tool {
                     }
                 });
             }
-
-            // resolve all imported parameters
-            ImportValuesFromParameterStore(module);
 
             // convert parameters
             _module.Parameters = AtLocation("Parameters", () => ConvertParameters(module.Parameters), null) ?? new List<AParameter>();
@@ -718,7 +718,7 @@ namespace MindTouch.LambdaSharp.Tool {
                             }
                         }
                     }
-                    if(_noCompile) {
+                    if(_skipCompile) {
                         return $"{projectName}-NOCOMPILE.zip";
                     }
 
@@ -1094,12 +1094,66 @@ namespace MindTouch.LambdaSharp.Tool {
 
         private void ImportValuesFromParameterStore(ModuleNode module) {
 
+            // only import lambdasharp parameters if necessary
+            var lambdaSharpPath = $"/{Settings.Tier}/LambdaSharp/";
+            if(
+                (Settings.EnvironmentVersion == null)
+                || (Settings.BucketName == null)
+                || (Settings.DeadLetterQueueUrl == null)
+                || (Settings.LoggingTopicArn == null)
+                || (Settings.NotificationTopicArn == null)
+                || (Settings.RollbarCustomResourceTopicArn == null)
+                || (Settings.S3PackageLoaderCustomResourceTopicArn == null)
+            ) {
+                _importer.Add(lambdaSharpPath);
+            }
+
             // find all parameters with an `Import` field
             AtLocation("Parameters", () => FindAllParameterImports());
             AtLocation("Functions", () => FindAllFunctionImports());
 
             // resolve all imported values
             _importer.BatchResolveImports();
+
+            // resolve missing lambasharp parameters (unless the 'LambdaSharp` module is being bootstrapped)
+            if(module.Name != "LambdaSharp") {
+
+                // read missing LambdaSharp settings
+                if(Settings.EnvironmentVersion == null) {
+                    var version = GetLambdaSharpSetting("Version");
+                    if(version != null) {
+                        Settings.EnvironmentVersion = new Version(version);
+                    }
+                }
+                Settings.BucketName = Settings.BucketName ?? GetLambdaSharpSetting("DeploymentBucket");
+                Settings.DeadLetterQueueUrl = Settings.DeadLetterQueueUrl ?? GetLambdaSharpSetting("DeadLetterQueue");
+                Settings.LoggingTopicArn = Settings.LoggingTopicArn ?? GetLambdaSharpSetting("LoggingTopic");
+                Settings.NotificationTopicArn = Settings.NotificationTopicArn ?? GetLambdaSharpSetting("DeploymentNotificationTopic");
+                Settings.RollbarCustomResourceTopicArn = Settings.RollbarCustomResourceTopicArn ?? GetLambdaSharpSetting("RollbarCustomResourceTopic");
+                Settings.S3PackageLoaderCustomResourceTopicArn = Settings.S3PackageLoaderCustomResourceTopicArn ?? GetLambdaSharpSetting("S3PackageLoaderCustomResourceTopic");
+
+                // validate LambdaSharp settings
+                if(Settings.EnvironmentVersion == null) {
+                    AddError("unable to determine the LambdaSharp Environment Version");
+                } else if(
+                    (Settings.EnvironmentVersion.Major != Settings.ToolVersion.Major) 
+                    || (Settings.EnvironmentVersion.Minor != Settings.ToolVersion.Minor)
+                ) {
+                    AddError($"LambdaSharp Tool (v{Settings.ToolVersion}) and Environment (v{Settings.EnvironmentVersion}) Versions do not match");
+                }
+                if(Settings.BucketName == null) {
+                    AddError("unable to determine the LambdaSharp S3 Bucket");
+                }
+                if(Settings.DeadLetterQueueUrl == null) {
+                    AddError("unable to determine the LambdaSharp Dead-Letter Queue");
+                }
+                if(Settings.LoggingTopicArn == null) {
+                    AddError("unable to determine the LambdaSharp Logging Topic");
+                }
+                if(Settings.NotificationTopicArn == null) {
+                    AddError("unable to determine the LambdaSharp CloudFormation Notification Topic");
+                }
+            }
 
             // check if any imports were not found
             foreach(var missing in _importer.MissingImports) {
@@ -1202,6 +1256,11 @@ namespace MindTouch.LambdaSharp.Tool {
                     });
                 }
 
+            }
+
+            string GetLambdaSharpSetting(string name) {
+                _importer.TryGetValue(lambdaSharpPath + name, out string result);
+                return result;
             }
         }
 

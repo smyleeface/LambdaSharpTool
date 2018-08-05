@@ -22,6 +22,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Amazon.CloudFormation;
@@ -53,13 +54,16 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
             var deploymentNotificationTopicArnOption = cmd.Option("--deployment-notification-topic-arn <ARN>", "(test only) SNS Topic used by CloudFormation deploymetions (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
             var deploymentRollbarCustomResourceTopicArnOption = cmd.Option("--deployment-rollbar-customresource-topic-arn <ARN>", "(test only) SNS Topic for creating Rollbar projects (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
             var deploymentS3PackageLoaderCustomResourceTopicArnOption = cmd.Option("--deployment-s3packageloader-customresource-topic-arn <ARN>", "(test only) SNS Topic for synchronizing S3 buckets (default: read from LambdaSharp configuration)", CommandOptionType.SingleValue);
-            var bootstrapOption = cmd.Option("--bootstrap", "(bootstrap only) Don't read LambdaSharp initialization values", CommandOptionType.NoValue);
+            var inputFileOption = cmd.Option("--input <FILE>", "(optional) File path to YAML module file (default: Deploy.yml)", CommandOptionType.SingleValue);
+            inputFileOption.ShowInHelpText = false;
+            var cmdArgument = cmd.Argument("<FILE>", "(optional) File path to YAML module file (default: Deploy.yml)", multipleValues: false);
             return async () => {
-                var bootstrap = bootstrapOption.HasValue();
 
                 // initialize logging level
                 if(verboseLevelOption.HasValue()) {
                     if(!TryParseEnumOption(verboseLevelOption, VerboseLevel.Detailed, out _verboseLevel)) {
+
+                        // NOTE (2018-08-04, bjorg): no need to add an error message since it's already added by `TryParseEnumOption`
                         return null;
                     }
                 }
@@ -95,7 +99,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                     }
                 }
 
-                // initialize AWS account Id and region
+                // initialize AWS account ID and region
                 var awsProfile = awsProfileOption.Value();
                 if(awsProfile != null) {
 
@@ -118,6 +122,13 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                     }
                 }
 
+                // check if a module file was specified using both the obsolete option and as argument
+                if(cmdArgument.Values.Any() && inputFileOption.HasValue()) {
+                    AddError("cannot specify --input and an argument at the same time");
+                    return null;
+                }
+                var moduleFilename = cmdArgument.Values.FirstOrDefault() ?? inputFileOption.Value();
+
                 // create AWS clients
                 var ssmClient = new AmazonSimpleSystemsManagementClient();
                 var cfClient = new AmazonCloudFormationClient();
@@ -132,42 +143,9 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                 var deploymentNotificationTopicArn = deploymentNotificationTopicArnOption.Value();
                 var deploymentRollbarCustomResourceTopicArn = deploymentRollbarCustomResourceTopicArnOption.Value();
                 var deploymentS3PackageLoaderCustomResourceTopicArn = deploymentS3PackageLoaderCustomResourceTopicArnOption.Value();
-                if(bootstrap) {
-                    Console.WriteLine($"Bootstrapping LambdaSharp for `{tier}'");
-                } else if(
-                    (deploymentVersion == null)
-                    || (deploymentBucketName == null)
-                    || (deploymentDeadletterQueueUrl == null)
-                    || (deploymentLoggingTopicArn == null)
-                    || (deploymentNotificationTopicArn == null)
-                    || (deploymentRollbarCustomResourceTopicArn == null)
-                    || (deploymentS3PackageLoaderCustomResourceTopicArn == null)
-                ) {
-
-                    // import lambdasharp parameters
-                    var lambdaSharpPath = $"/{tier}/LambdaSharp/";
-                    var lambdaSharpSettings = await ssmClient.GetAllParametersByPathAsync(lambdaSharpPath);
-                    deploymentVersion = deploymentVersion ?? GetLambdaSharpSetting("Version");
-                    deploymentBucketName = deploymentBucketName ?? GetLambdaSharpSetting("DeploymentBucket");
-                    deploymentDeadletterQueueUrl = deploymentDeadletterQueueUrl ?? GetLambdaSharpSetting("DeadLetterQueue");
-                    deploymentLoggingTopicArn = deploymentLoggingTopicArn ?? GetLambdaSharpSetting("LoggingTopic");
-                    deploymentNotificationTopicArn = deploymentNotificationTopicArn ?? GetLambdaSharpSetting("DeploymentNotificationTopic");
-
-                    // Rollbar custom topic is optional, so don't check for null
-                    deploymentRollbarCustomResourceTopicArn = deploymentRollbarCustomResourceTopicArn ?? GetLambdaSharpSetting("RollbarCustomResourceTopic");
-
-                    // S3 package loader topic is optional, so don't check for null
-                    deploymentS3PackageLoaderCustomResourceTopicArn = deploymentS3PackageLoaderCustomResourceTopicArn ?? GetLambdaSharpSetting("S3PackageLoaderCustomResourceTopic");
-
-                    // local functions
-                    string GetLambdaSharpSetting(string name) {
-                        lambdaSharpSettings.TryGetValue(lambdaSharpPath + name, out KeyValuePair<string, string> result);
-                        return result.Value;
-                    }
-                }
-
                 return new Settings {
-                    Version = (deploymentVersion != null) ? new Version(deploymentVersion) : null,
+                    ToolVersion = new Version(Version.Major, Version.Minor),
+                    EnvironmentVersion = (deploymentVersion != null) ? new Version(deploymentVersion) : null,
                     Tier = tier,
                     GitSha = gitSha,
                     AwsRegion = awsRegion,
@@ -178,6 +156,8 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                     NotificationTopicArn = deploymentNotificationTopicArn,
                     RollbarCustomResourceTopicArn = deploymentRollbarCustomResourceTopicArn,
                     S3PackageLoaderCustomResourceTopicArn = deploymentS3PackageLoaderCustomResourceTopicArn,
+                    ModuleFileName = (moduleFilename != null) ? Path.GetFullPath(moduleFilename) : null,
+                    WorkingDirectory = (moduleFilename != null) ? Path.GetDirectoryName(moduleFilename) : Directory.GetCurrentDirectory(),
                     ResourceMapping = new ResourceMapping(),
                     SsmClient = ssmClient,
                     CfClient = cfClient,

@@ -46,7 +46,7 @@ namespace MindTouch.LambdaSharp.Tool {
         public static int Main(string[] args) {
             var app = new CommandLineApplication(throwOnUnexpectedArg: false) {
                 Name = "MindTouch.LambdaSharp.Tool",
-                FullName = $"MindTouch LambdaSharp Tool (v{_version.Major}.{_version.Minor}.{_version.Build})",
+                FullName = $"MindTouch LambdaSharp Tool (v{Version})",
                 Description = "Project Home: https://github.com/LambdaSharp/LambdaSharpTool"
             };
             app.HelpOption();
@@ -68,16 +68,10 @@ namespace MindTouch.LambdaSharp.Tool {
             } catch(Exception e) {
                 AddError(e);
             }
-            if(_errors.Any()) {
+            if(ErrorCount > 0) {
                 Console.WriteLine();
-                Console.WriteLine($"FAILED: {_errors.Count():N0} errors encountered");
-                foreach (var error in _errors) {
-                    if((error.Exception != null) && (_verboseLevel >= VerboseLevel.Exceptions)) {
-                        Console.WriteLine("ERROR: " + error.Message + Environment.NewLine + error.Exception);
-                    } else {
-                        Console.WriteLine("ERROR: " + error.Message);
-                    }
-                }
+               Console.WriteLine($"FAILED: {ErrorCount:N0} errors encountered");
+                ShowErrors();
                 return -1;
             }
             return 0;

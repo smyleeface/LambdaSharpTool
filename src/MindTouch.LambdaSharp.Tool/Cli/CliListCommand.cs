@@ -112,9 +112,11 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
                 }).OrderBy(summary => summary.Date)) {
                     Console.WriteLine($"{summary.ModuleName.PadRight(moduleNameWidth)}{("[" + summary.StackStatus + "]").PadRight(statusWidth)}{summary.Date:yyyy-MM-dd HH:mm:ss}");
                 }
+                Console.WriteLine();
+                Console.WriteLine($"Found {stacks.Count:N0} modules for deployment tier '{tier}'");
             } else {
                 Console.WriteLine();
-                Console.WriteLine("No stacks found.");
+                Console.WriteLine($"Found no modules for deployment tier '{tier}'");
             }
         }
     }
