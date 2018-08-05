@@ -126,7 +126,7 @@ namespace MindTouch.LambdaSharp {
 
         protected virtual async Task InitializeAsync(ILambdaConfigSource envSource, ILambdaContext context) {
 
-            // read bootstrap configuration from environment
+            // read configuration from environment variables
             _tier = envSource.Read("TIER");
             _module = envSource.Read("MODULE");
             _deadLetterQueueUrl = envSource.Read("DEADLETTERQUEUE");

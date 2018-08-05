@@ -1110,7 +1110,9 @@ namespace MindTouch.LambdaSharp.Tool {
 
         private void ImportValuesFromParameterStore(ModuleNode module) {
 
-            // only import lambdasharp parameters if necessary
+            // NOTE (2018-08-04, bjorg): we only import lambdasharp parameters when necessary
+            //  to allow tests to use a dummy AWS account ID; since no import will be triggered
+            //  the dummy account id is not an issue.
             var lambdaSharpPath = $"/{Settings.Tier}/LambdaSharp/";
             if(
                 (Settings.EnvironmentVersion == null)
@@ -1131,10 +1133,8 @@ namespace MindTouch.LambdaSharp.Tool {
             // resolve all imported values
             _importer.BatchResolveImports();
 
-            // resolve missing lambasharp parameters (unless the 'LambdaSharp` module is being bootstrapped)
+            // read missing LambdaSharp settings from the LambdaSharp Environment (unless the 'LambdaSharp` module is being deployed)
             if(module.Name != "LambdaSharp") {
-
-                // read missing LambdaSharp settings
                 if(Settings.EnvironmentVersion == null) {
                     var version = GetLambdaSharpSetting("Version");
                     if(version != null) {
@@ -1148,14 +1148,14 @@ namespace MindTouch.LambdaSharp.Tool {
                 Settings.RollbarCustomResourceTopicArn = Settings.RollbarCustomResourceTopicArn ?? GetLambdaSharpSetting("RollbarCustomResourceTopic");
                 Settings.S3PackageLoaderCustomResourceTopicArn = Settings.S3PackageLoaderCustomResourceTopicArn ?? GetLambdaSharpSetting("S3PackageLoaderCustomResourceTopic");
 
-                // validate LambdaSharp settings
-                if(Settings.EnvironmentVersion == null) {
-                    AddError("unable to determine the LambdaSharp Environment Version");
-                } else if(
-                    (Settings.EnvironmentVersion.Major != Settings.ToolVersion.Major) 
-                    || (Settings.EnvironmentVersion.Minor != Settings.ToolVersion.Minor)
-                ) {
-                    AddError($"LambdaSharp Tool (v{Settings.ToolVersion}) and Environment (v{Settings.EnvironmentVersion}) Versions do not match");
+                // check that LambdaSharp Environment & Tool versions match
+                if(Settings.EnvironmentVersion != null) {
+                    if(
+                        (Settings.EnvironmentVersion.Major != Settings.ToolVersion.Major) 
+                        || (Settings.EnvironmentVersion.Minor != Settings.ToolVersion.Minor)
+                    ) {
+                        AddError($"LambdaSharp Tool (v{Settings.ToolVersion}) and Environment (v{Settings.EnvironmentVersion}) Versions do not match");
+                    }
                 }
             }
 
