@@ -171,6 +171,11 @@ namespace MindTouch.LambdaSharp.Tool {
                     if(_module.Settings.DeadLetterQueueUrl == null) {
                         AddError("deploying functions requires a dead-letter queue");
                     }
+
+                    // check if a logging topic was set
+                    if(_module.Settings.LoggingTopicArn == null) {
+                        AddError("deploying functions requires a logging topic");
+                    }
                 });
                 var functionIndex = 0;
                 _module.Functions = AtLocation("Functions", () => module.Functions
@@ -1151,12 +1156,6 @@ namespace MindTouch.LambdaSharp.Tool {
                     || (Settings.EnvironmentVersion.Minor != Settings.ToolVersion.Minor)
                 ) {
                     AddError($"LambdaSharp Tool (v{Settings.ToolVersion}) and Environment (v{Settings.EnvironmentVersion}) Versions do not match");
-                }
-                if(Settings.LoggingTopicArn == null) {
-                    AddError("unable to determine the LambdaSharp Logging Topic");
-                }
-                if(Settings.NotificationTopicArn == null) {
-                    AddError("unable to determine the LambdaSharp CloudFormation Notification Topic");
                 }
             }
 
