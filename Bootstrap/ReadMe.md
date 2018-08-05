@@ -4,7 +4,7 @@
 
 Setting up the λ# environment is required for each deployment tier (e.g. `Test`, `Stage`, `Prod`, etc.).
 
-## 1) Install λ# Tool
+## Setup λ# Tool
 
 The λ# tool is distributed as [GitHub repository](https://github.com/LambdaSharp/LambdaSharpTool). Switch to your preferred folder for Git projects and create a clone of the λ# tool.
 
@@ -12,7 +12,7 @@ The λ# tool is distributed as [GitHub repository](https://github.com/LambdaShar
 git clone https://github.com/LambdaSharp/LambdaSharpTool.git
 ```
 
-Define the `LAMBDASHARP` environment variable to point to the folder of the `LambdaSharpTool` clone. Furthermore, define `lash` as alias to invoke the λ# tool. The following script assumes the λ# tool was cloned into the `/Repos/LambdaSharpTool` directory.
+Define the `LAMBDASHARP` environment variable to point to the folder of the `LambdaSharpTool` clone. Furthermore, define `lash` as an alias to invoke the λ# tool. The following script assumes the λ# tool was cloned into the `/Repos/LambdaSharpTool` directory.
 
 __Using PowerShell:__
 ```powershell
@@ -51,24 +51,26 @@ Commands:
 Run 'MindTouch.LambdaSharp.Tool [command] --help' for more information about a command.
 ```
 
-## 2) Deploy λ# Environment
+## Bootstrap λ# Environment
 
 The λ# environment requires an AWS account to be setup for each deployment tier (e.g. `Test`, `Stage`, `Prod`, etc.). Once setup, λ# modules can be deployed.
 
-The following command creates the AWS resources needed to deploy λ# modules, such as a the deployment bucket and dead-letter queue. For the purpose of this tutorial, we use `Demo` as the new deployment tier name. The next step must to be repeated for each deployment tier (e.g. `Test`, `Stage`, `Prod`, etc.).
+The following command creates the AWS resources needed to deploy λ# modules, such as a the deployment bucket, dead-letter queue, S3 package loader, etc. For the purpose of this tutorial, we use `Demo` as the new deployment tier name.
 
-```bash
-lash deploy \
-    --tier Demo \
-    $LAMBDASHARP/Bootstrap/LambdaSharp/Deploy.yml
+Ths step must to be repeated for each deployment tier (e.g. `Test`, `Stage`, `Prod`, etc.).
+
+__Using Powershell:__
+```powershell
+lash deploy `
+    --tier Demo `
+    $LAMBDASHARP\Bootstrap\LambdaSharp\Deploy.yml `
+    $LAMBDASHARP\Bootstrap\LambdaSharpS3PackageLoader\Deploy.yml
 ```
 
-## 3) Deploy λ# S3 Package Loader
-
-λ# includes an AWS Custom Resource handler to upload files to S3 Buckets as part of the deployment process. The following command deploys the custom resource handler. Once deployed, all subsequent λ# modules can deploy packages to S3 buckets.
-
+__Using Bash:__
 ```bash
 lash deploy \
     --tier Demo \
+    $LAMBDASHARP/Bootstrap/LambdaSharp/Deploy.yml \
     $LAMBDASHARP/Bootstrap/LambdaSharpS3PackageLoader/Deploy.yml
 ```
