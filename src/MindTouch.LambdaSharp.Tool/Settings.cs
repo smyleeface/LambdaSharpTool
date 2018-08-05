@@ -29,6 +29,12 @@ using MindTouch.LambdaSharp.Tool.Model;
 
 namespace MindTouch.LambdaSharp.Tool {
 
+    public class LambdaSharpEnvironmentSetupException : Exception {
+
+        //--- Constructors ---
+        public LambdaSharpEnvironmentSetupException() : base() { }
+    }
+
     public class Settings {
 
         //--- Properties ---

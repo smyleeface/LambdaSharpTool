@@ -49,12 +49,16 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
 
         //--- Class Methods ---
         protected static void ShowErrors() {
-            foreach (var error in _errors) {
+            foreach(var error in _errors) {
                 if((error.Exception != null) && (_verboseLevel >= VerboseLevel.Exceptions)) {
                     Console.WriteLine("ERROR: " + error.Message + Environment.NewLine + error.Exception);
                 } else {
                     Console.WriteLine("ERROR: " + error.Message);
                 }
+            }
+            if(_errors.Any(error => error.Exception is LambdaSharpEnvironmentSetupException)) {
+                Console.WriteLine();
+                Console.WriteLine("IMPORTANT: complete the LambdaSharp bootstrap procedure to initialize the LambdaSharp Environment.");
             }
         }
 
