@@ -34,6 +34,7 @@ using Newtonsoft.Json;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using MindTouch.LambdaSharp.Tool.Internal;
+using System.Text;
 
 namespace MindTouch.LambdaSharp.Tool {
 
@@ -474,6 +475,7 @@ namespace MindTouch.LambdaSharp.Tool {
                                     var bytes = new List<byte>();
                                     foreach(var file in files) {
                                         using(var stream = File.OpenRead(file)) {
+                                            bytes.AddRange(Encoding.UTF8.GetBytes(file));
                                             bytes.AddRange(md5.ComputeHash(stream));
                                         }
                                     }
@@ -827,6 +829,7 @@ namespace MindTouch.LambdaSharp.Tool {
                                 // don't include the `gitsha.txt` since it changes with every build
                                 if(filename != GITSHAFILE) {
                                     using(var stream = File.OpenRead(file)) {
+                                        bytes.AddRange(Encoding.UTF8.GetBytes(file));
                                         bytes.AddRange(md5.ComputeHash(stream));
                                     }
                                 }
