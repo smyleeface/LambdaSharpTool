@@ -31,6 +31,7 @@ namespace MindTouch.LambdaSharp {
         //--- Class Fields ---
         public static readonly LambdaFunctionConfiguration Instance = new LambdaFunctionConfiguration {
             SqsClient = new AmazonSQSClient(),
+            SnsClient = new AmazonSimpleNotificationServiceClient(),
             KmsClient = new AmazonKeyManagementServiceClient(),
             EnvironmentSource = new LambdaSystemEnvironmentSource(),
             UtcNow = () => DateTime.UtcNow
