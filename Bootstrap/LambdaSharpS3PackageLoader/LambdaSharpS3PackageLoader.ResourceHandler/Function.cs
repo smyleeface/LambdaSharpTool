@@ -23,6 +23,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Threading.Tasks;
 using Amazon.Lambda.Core;
 using Amazon.S3;
@@ -53,12 +54,17 @@ namespace MindTouch.LambdaSharpS3PackageLoader.ResourceHandler {
 
     public class Function : ALambdaCustomResourceFunction<RequestProperties, ResponseProperties> {
 
+        //--- Constants ---
+        private const int MAX_BATCH_DELETE_OBJECTS = 1000;
+
         //--- Fields ---
+        private string _manifestBucket;
         private IAmazonS3 _s3Client;
         private TransferUtility _transferUtility;
 
         //--- Methods ---
         public override Task InitializeAsync(LambdaConfig config) {
+            _manifestBucket = config.ReadText("ManifestBucket");
             _s3Client = new AmazonS3Client();
             _transferUtility = new TransferUtility(_s3Client);
             return Task.CompletedTask;
@@ -76,6 +82,10 @@ namespace MindTouch.LambdaSharpS3PackageLoader.ResourceHandler {
         }
 
         private async Task<Response<ResponseProperties>> UploadFiles(RequestProperties properties) {
+            LogInfo($"uploading package {properties.SourcePackageKey} to S3 bucket {properties.DestinationBucketName}");
+
+            // download package and copy all files to destination bucket
+            var entries = new List<string>();
             await ProcessZipFileEntriesAsync(properties.SourceBucketName, properties.SourcePackageKey, async entry => {
                 using(var stream = entry.Open()) {
                     var memoryStream = new MemoryStream();
@@ -85,8 +95,23 @@ namespace MindTouch.LambdaSharpS3PackageLoader.ResourceHandler {
                         properties.DestinationBucketName, 
                         Path.Combine(properties.DestinationKeyPrefix, entry.FullName)
                     );
+                    entries.Add(entry.FullName);
                 }
             });
+            LogInfo($"uploaded {entries.Count:N0} files");
+
+            // create package manifest for future deletion
+            var manifestStream = new MemoryStream();
+            using(var manifest = new ZipArchive(manifestStream, ZipArchiveMode.Create, leaveOpen: true))
+            using(var manifestEntryStream = manifest.CreateEntry("manifest.txt").Open())
+            using(var manifestEntryWriter = new StreamWriter(manifestEntryStream)) {
+                await manifestEntryWriter.WriteAsync(string.Join("\n", entries));
+            }
+            await _transferUtility.UploadAsync(
+                manifestStream, 
+                _manifestBucket, 
+                $"{properties.DestinationBucketName}/{properties.SourcePackageKey}"
+            );
             return new Response<ResponseProperties> {
                 PhysicalResourceId = $"s3package:{properties.DestinationBucketName}:{properties.DestinationKeyPrefix}/{properties.DestinationKeyPrefix}",
                 Properties = new ResponseProperties {
@@ -96,22 +121,59 @@ namespace MindTouch.LambdaSharpS3PackageLoader.ResourceHandler {
         }
 
         private async Task<Response<ResponseProperties>> DeleteFiles(RequestProperties properties) {
-            await ProcessZipFileEntriesAsync(properties.SourceBucketName, properties.SourcePackageKey, async entry => {
-                await _s3Client.DeleteObjectAsync(new DeleteObjectRequest {
+            LogInfo($"deleting package {properties.SourcePackageKey} from S3 bucket {properties.DestinationBucketName}");
+            
+            // download package manifest
+            var entries = new List<string>();
+            var key = $"{properties.DestinationBucketName}/{properties.SourcePackageKey}";
+            await ProcessZipFileEntriesAsync(
+                _manifestBucket, 
+                key,
+                async entry => {
+                    using(var stream = entry.Open())
+                    using(var reader = new StreamReader(stream)) {
+                        var manifest = await reader.ReadToEndAsync();
+                        entries.AddRange(manifest.Split('\n'));
+                    }
+                }
+            );
+            LogInfo($"found {entries.Count:N0} files to delete");
+
+            // delete all files from manifest
+            while(entries.Any()) {
+                await _s3Client.DeleteObjectsAsync(new DeleteObjectsRequest {
                     BucketName = properties.DestinationBucketName,
-                    Key = Path.Combine(properties.DestinationKeyPrefix, entry.FullName)
+                    Objects = entries.Take(MAX_BATCH_DELETE_OBJECTS).Select(entry => new KeyVersion {
+                        Key = Path.Combine(properties.DestinationKeyPrefix, entry)
+                    }).ToList()
                 });
-            });
+                entries = entries.Skip(MAX_BATCH_DELETE_OBJECTS).ToList();
+            }
+
+            // delete manifest file
+            try {
+                await _s3Client.DeleteObjectAsync(new DeleteObjectRequest {
+                    BucketName = _manifestBucket,
+                    Key = key
+                });
+            } catch {
+                LogWarn($"unable to delete manifest file at s3://{_manifestBucket}/{key}");
+            }
             return new Response<ResponseProperties>();
         }
 
         private async Task ProcessZipFileEntriesAsync(string bucketName, string key, Func<ZipArchiveEntry, Task> callbackAsync) {
             var tmpFilename = Path.GetTempFileName() + ".zip";
-            await _transferUtility.DownloadAsync(new TransferUtilityDownloadRequest {
-                BucketName = bucketName,
-                Key = key,
-                FilePath = tmpFilename
-            });
+            try {
+                await _transferUtility.DownloadAsync(new TransferUtilityDownloadRequest {
+                    BucketName = bucketName,
+                    Key = key,
+                    FilePath = tmpFilename
+                });
+            } catch {
+                LogWarn($"unable to dowload zip file from s3://{bucketName}/{key}");
+                return;
+            }
             try {
                 using(var zip = ZipFile.Open(tmpFilename, ZipArchiveMode.Read)) {
                     foreach(var entry in zip.Entries) {

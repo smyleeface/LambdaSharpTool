@@ -2,12 +2,12 @@ Name: LambdaSharpS3PackageLoader
 
 Version: 0.2
 
-Description: LambdaSharp resource handler for S3 Packages
+Description: LambdaSharp S3 Package Loader (v{{Version}})
 
 Parameters:
 
   - Name: S3BucketPermissions
-    Description: LambdaSharpS3PackageLoader requires read-write access to all buckets
+    Description: LambdaSharpS3PackageLoader requires read-write access to all S3 buckets
     Values: 
       - "arn:aws:s3:::{{Tier}}-*"
       - "arn:aws:s3:::{{Tier}}-*/*"
@@ -15,12 +15,18 @@ Parameters:
       Type: AWS::S3::Bucket
       Allow: ReadWrite
 
-  - Name: S3PackageLoaderCustomResourceTopic
+  - Name: CustomResourceTopic
     Description: Custom resource topic for deploying packages to S3 buckets
     Export: /{{Tier}}/LambdaSharp/S3PackageLoaderCustomResourceTopic
     Resource:
       Type: AWS::SNS::Topic
       Allow: Subscribe
+  
+  - Name: ManifestBucket
+    Description: Bucket to store information about uploaded packages
+    Resource:
+      Type: AWS::S3::Bucket
+      Allow: ReadWrite
 
 Functions:
 
@@ -28,4 +34,4 @@ Functions:
     Memory: 128
     Timeout: 300
     Sources:
-      - Topic: S3PackageLoaderCustomResourceTopic
+      - Topic: CustomResourceTopic
