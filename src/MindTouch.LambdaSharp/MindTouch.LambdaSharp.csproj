@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>MindTouch.LambdaSharp.Tool</RootNamespace>
     <PackageId>MindTouch.LambdaSharp</PackageId>
-    <Version>0.1.3</Version>
+    <Version>0.2.0</Version>
     <Title>MindTouch λ#</Title>
     <Description>A serverless framework for rapid application development on AWS Lambda</Description>
     <Company>MindTouch, Inc.</Company>

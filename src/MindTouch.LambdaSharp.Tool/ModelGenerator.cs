@@ -108,6 +108,13 @@ namespace MindTouch.LambdaSharp.Tool {
                         "sqs:SendMessage"
                     }
                 });
+                _resourceStatements.Add(new Statement {
+                    Effect = "Allow",
+                    Resource = _module.Settings.LoggingTopicArn,
+                    Action = new List<string> {
+                        "sns:Publish"
+                    }
+                });
 
                 // create module IAM role used by all functions
                 _stack.Add("ModuleRole", new IAM.Role {

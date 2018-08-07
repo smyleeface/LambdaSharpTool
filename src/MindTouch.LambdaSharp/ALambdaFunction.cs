@@ -54,13 +54,11 @@ namespace MindTouch.LambdaSharp {
         private readonly IAmazonSQS _sqsClient;
         private readonly ILambdaConfigSource _envSource;
         private IRollbarClient _rollbarClient;
+        private bool _rollbarEnabled;
         private string _deadLetterQueueUrl;
         private string _loggingTopicArn;
         private bool _initialized;
         private LambdaConfig _appConfig;
-        private string _tier;
-        private string _module;
-        private string _stackName;
 
         //--- Constructors ---
         protected ALambdaFunction() : this(LambdaFunctionConfiguration.Instance) { }
@@ -77,6 +75,8 @@ namespace MindTouch.LambdaSharp {
         //--- Properties ---
         protected DateTime UtcNow => _now();
         protected DateTime Started => _started;
+        protected string ModuleName { get; private set; }
+        protected string DeploymentTier { get; private set; }
 
         //--- Abstract Methods ---
         public abstract Task InitializeAsync(LambdaConfig config);
@@ -127,13 +127,13 @@ namespace MindTouch.LambdaSharp {
         protected virtual async Task InitializeAsync(ILambdaConfigSource envSource, ILambdaContext context) {
 
             // read configuration from environment variables
-            _tier = envSource.Read("TIER");
-            _module = envSource.Read("MODULE");
+            DeploymentTier = envSource.Read("TIER");
+            ModuleName = envSource.Read("MODULE");
             _deadLetterQueueUrl = envSource.Read("DEADLETTERQUEUE");
             _loggingTopicArn = envSource.Read("LOGGINGTOPIC");
             var framework = envSource.Read("LAMBDARUNTIME");
-            LogInfo($"TIER = {_tier}");
-            LogInfo($"MODULE = {_module}");
+            LogInfo($"TIER = {DeploymentTier}");
+            LogInfo($"MODULE = {ModuleName}");
             LogInfo($"DEADLETTERQUEUE = {_deadLetterQueueUrl ?? "NONE"}");
             LogInfo($"LOGGINGTOPIC = {_loggingTopicArn ?? "NONE"}");
 
@@ -152,21 +152,23 @@ namespace MindTouch.LambdaSharp {
 
             // initialize rollbar
             var rollbarAccessToken = _appConfig.ReadText("RollbarToken", defaultValue: null);
-            if(rollbarAccessToken != null) {
-                const string proxy = "";
-                const string platform = "lambda";
-                _rollbarClient = RollbarClient.Create(new RollbarConfiguration(
-                    rollbarAccessToken,
-                    proxy,
-                    _tier,
-                    platform,
-                    framework,
-                    gitsha
-                ));
-                LogInfo("Rollbar = ENABLED");
-            } else {
-                LogInfo("Rollbar = DISABLED");
-            }
+            const string proxy = "";
+            const string platform = "lambda";
+            _rollbarClient = RollbarClient.Create(new RollbarConfiguration(
+
+                // NOTE (2018-08-06, bjorg): the rollbar access token determines the rollbar project
+                //  the error report is associated with; when rollbar intergration is disabled,
+                //  use the module name instead so the logging recipient can determine the module
+                //  the log entry belongs to.
+                rollbarAccessToken ?? ModuleName,
+                proxy,
+                DeploymentTier,
+                platform,
+                framework,
+                gitsha
+            ));
+            _rollbarEnabled = (rollbarAccessToken != null);
+            LogInfo($"Rollbar = {(_rollbarEnabled ? "ENABLED" : "DISABLED")}");
 
             // local functions
             async Task<Dictionary<string, string>> ParseParameters(string parameterPrefix, string json) {
@@ -241,31 +243,37 @@ namespace MindTouch.LambdaSharp {
             string message = RollbarClient.FormatMessage(format, args);
             Log(level, $"{message}", exception?.ToString());
             if(level >= LambdaLogLevel.WARNING) {
-                if(_rollbarClient != null) {
+                if(_rollbarEnabled) {
                     try {
-                        Log(LambdaLogLevel.INFO, $"rollbar sending data", extra: null);
-                        var result = _rollbarClient.SendAsync(level.ToString(), exception, format, args).GetAwaiter().GetResult();
+                        Log(LambdaLogLevel.INFO, "rollbar sending data", extra: null);
+                        var result = _rollbarClient.SendAsync(level.ToString(), exception, format, args).Result;
                         if(!result.IsSuccess) {
                             Log(LambdaLogLevel.ERROR, $"Rollbar payload request failed. {result.Message}. UUID: {result.UUID}", extra: null);
                         }
                     } catch(Exception e) {
-                        Log(LambdaLogLevel.ERROR, $"rollbar client exception", e.ToString());
+                        Log(LambdaLogLevel.ERROR, "rollbar SendAsync exception", e.ToString());
                     }
                 } else if(_loggingTopicArn != null) {
+                    string payload;
+                    try {
 
-                    // send exception to error-topic
-                    _snsClient.PublishAsync(new PublishRequest {
-                        TopicArn = _loggingTopicArn,
-                        Message = _rollbarClient.CreatePayload(MAX_SNS_SIZE, level.ToString(), exception, format, args),
-                        MessageAttributes = new Dictionary<string, MessageAttributeValue> {
-                            ["Tier"] = new MessageAttributeValue {
-                                StringValue = _tier
-                            },
-                            ["Module"] = new MessageAttributeValue {
-                                StringValue = _module
-                            }
-                        }
-                    }).GetAwaiter().GetResult();
+                        // send exception to error-topic
+                        payload = _rollbarClient.CreatePayload(MAX_SNS_SIZE, level.ToString(), exception, format, args);                
+                    } catch(Exception e) {
+                        Log(LambdaLogLevel.ERROR, "rollbar CreatePayload exception", e.ToString());
+                        return;
+                    }
+                    try {
+
+                        // send exception to error-topic
+                        _snsClient.PublishAsync(new PublishRequest {
+                            TopicArn = _loggingTopicArn,
+                            Message = payload
+                        }).Wait();
+                    } catch(Exception e) {
+                        Log(LambdaLogLevel.ERROR, "SNS publish exception", e.ToString());
+                        Log(LambdaLogLevel.INFO, "logging payload", payload);
+                    }
                 }
             }
         }
