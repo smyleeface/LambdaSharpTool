@@ -29,8 +29,7 @@ namespace MindTouch.LambdaSharp.Tool.Model {
         public string Name { get; set; }
         public string Description { get; set; }
         public IList<AFunctionSource> Sources { get; set; }
-        public string Package { get; set; }
-        public string PackageS3Key { get; set; }
+        public string S3Location { get; set; }
         public string Handler { get; set; }
         public string Runtime { get; set; }
         public string Memory { get; set; }
@@ -38,12 +37,14 @@ namespace MindTouch.LambdaSharp.Tool.Model {
         public string ReservedConcurrency { get; set; }
         public FunctionVpc VPC;
         public Dictionary<string, string> Environment { get; set; }
+        public string Export { get; set; }
+        public string PackagePath { get; set; }
    }
 
    public class FunctionVpc {
 
        //--- Properties ---
-       public IList<string> SubnetIds { get; set; }
-       public IList<string> SecurityGroupIds { get; set; }
+       public object SubnetIds { get; set; }
+       public object SecurityGroupIds { get; set; }
    }
 }

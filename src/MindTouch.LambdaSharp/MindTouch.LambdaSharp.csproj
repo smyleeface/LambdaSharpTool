@@ -2,8 +2,9 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <RootNamespace>MindTouch.LambdaSharp.Tool</RootNamespace>
+    <NoWarn>CS1998</NoWarn>
     <PackageId>MindTouch.LambdaSharp</PackageId>
-    <Version>0.2.0</Version>
+    <Version>0.3.0-RC1</Version>
     <Title>MindTouch λ#</Title>
     <Description>A serverless framework for rapid application development on AWS Lambda</Description>
     <Company>MindTouch, Inc.</Company>
@@ -28,7 +29,6 @@
     <PackageReference Include="AWSSDK.KeyManagementService" Version="3.3.5.6"/>
     <PackageReference Include="AWSSDK.SQS" Version="3.3.3.2"/>
     <PackageReference Include="MindTouch.Rollbar" Version="1.1.0"/>
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2"/>
     <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.3.1.4"/>
   </ItemGroup>
 </Project>
