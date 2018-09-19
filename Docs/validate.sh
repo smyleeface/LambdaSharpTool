@@ -13,6 +13,7 @@ if ! git diff-index --quiet HEAD -- Tests/; then
 fi
 
 cd tests
+rm *-CF.json
 ./runtests.sh
 cd ..
 
@@ -44,6 +45,7 @@ lash deploy Demo/Module.yml
 # # Create a Default λ# Module and Deploy it
 
 # mkdir Test$SUFFIX
+mkdir Test$SUFFIX
 cd Test$SUFFIX
 lash new module MyModule
 lash new function MyFunction

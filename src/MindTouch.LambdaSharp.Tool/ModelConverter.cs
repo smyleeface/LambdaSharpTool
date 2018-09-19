@@ -96,7 +96,8 @@ namespace MindTouch.LambdaSharp.Tool {
                             // NOTE (2018-08-05, bjorg): set old values for backwards compatibility
                             ["Project"] = _module.Name,
                             ["Deployment"] = Settings.Tier
-                        }
+                        },
+                        DependsOn = new List<string>()
                     }
                 });
             }
