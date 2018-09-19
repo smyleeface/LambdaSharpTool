@@ -52,11 +52,10 @@ The <code>Properties</code> section cannot be specified for referenced resources
 
 <i>Type</i>: Map
 </dd>
-</dl>
 
 <dt><code>DependsOn</code></dt>
 <dd>
-The <code>DependsOn</code> attribute identifies resources that must be created in a specific order. Parameter name must match another parameter name within the module that is generating a resource. For additional information, see <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-dependson.html">CloudFormation DependsOn Attribute</a>. 
+The <code>DependsOn</code> attribute identifies resources that must be created in a specific order. Parameter name must match another parameter name within the module that is generating a resource. For additional information, see <a href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-attribute-dependson.html">CloudFormation DependsOn Attribute</a>.
 
 <i>Required</i>: No
 
