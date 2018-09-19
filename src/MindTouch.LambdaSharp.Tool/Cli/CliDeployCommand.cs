@@ -23,13 +23,9 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
-using Amazon.S3.Model;
 using Humidifier.Json;
 using McMaster.Extensions.CommandLineUtils;
-using MindTouch.LambdaSharp.Tool.Internal;
 
 namespace MindTouch.LambdaSharp.Tool.Cli {
 
@@ -151,6 +147,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
 
             // package all files
             new ModelFilesPackager(settings).Process(module);
+            
             // compile module file
             var compiledModule = new ModelConverter(settings).Process(module);
             if(HasErrors) {

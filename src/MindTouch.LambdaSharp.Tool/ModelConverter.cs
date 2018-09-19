@@ -24,9 +24,6 @@ using System.Collections.Generic;
 using System.Linq;
 using MindTouch.LambdaSharp.Tool.Model;
 using MindTouch.LambdaSharp.Tool.Model.AST;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
-using MindTouch.LambdaSharp.Tool.Internal;
 
 namespace MindTouch.LambdaSharp.Tool {
 
@@ -330,7 +327,8 @@ namespace MindTouch.LambdaSharp.Tool {
                 Type = resource.Type,
                 ResourceArn = resourceArn,
                 Allow = allowList,
-                Properties = resource.Properties
+                Properties = resource.Properties,
+                DependsOn = resource.DependsOn
             };
         }
 
