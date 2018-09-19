@@ -15,7 +15,9 @@ When creating a λ# module, you only need to worry about three files:
 
 ## Getting Started
 
-Once the λ# environment has been [setup](Bootstrap/), creating modules with Lambda functions an deploying them only requires a few steps.
+**[Before getting started, you must setup your λ# Environment.](Bootstrap/)**
+
+Once setup, creating modules with Lambda functions and deploying them only requires a few steps.
 
 ```bash
 # Create a new λ# module
@@ -47,15 +49,27 @@ The C# project contains the Lambda handler.
 ```csharp
 namespace MySampleModule.MyFunction {
 
-    public class Function : ALambdaFunction<object, string> {
+    public class FunctionRequest {
+
+        // TODO: add request fields
+    }
+
+    public class FunctionResponse {
+
+        // TODO: add response fields
+    }
+
+    public class Function : ALambdaFunction<FunctionRequest, FunctionResponse> {
 
         //--- Methods ---
         public override Task InitializeAsync(LambdaConfig config)
             => Task.CompletedTask;
 
-        public override async Task<object> ProcessMessageStreamAsync(object request, ILambdaContext context) {
-            LogInfo("request received");
-            return "Ok";
+        public override async Task<FunctionResponse> ProcessMessageAsync(FunctionRequest request, ILambdaContext context) {
+
+            // TODO: add business logic
+
+            return new FunctionResponse();
         }
     }
 }

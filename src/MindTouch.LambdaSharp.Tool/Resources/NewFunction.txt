@@ -14,7 +14,6 @@ namespace %%ROOTNAMESPACE%% {
         //--- Properties ---
 
         // TODO: add request fields
-
     }
 
     public class FunctionResponse {
@@ -22,7 +21,6 @@ namespace %%ROOTNAMESPACE%% {
         //--- Properties ---
 
         // TODO: add response fields
-
     }
 
     public class Function : ALambdaFunction<FunctionRequest, FunctionResponse> {
