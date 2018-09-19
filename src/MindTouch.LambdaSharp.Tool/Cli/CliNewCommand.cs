@@ -187,6 +187,7 @@ namespace MindTouch.LambdaSharp.Tool.Cli {
             string workingDirectory,
             string moduleFile
         ) {
+
             // TODO (2018-09-13, bjorg): allow following settings to be configurable via command line options
             var functionMemory = 128;
             var functionTimeout = 30;
