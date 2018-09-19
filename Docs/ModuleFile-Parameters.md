@@ -140,6 +140,6 @@ The <code>Parameters</code> section contains nested parameter values and resourc
 
 <i>Required:</i> No
 
-<i>Type:</i> List of [Parameter Definition](ModuleFile-Parameters.md)
+<i>Type:</i> List of Parameter Definition
 </dd>
 </dl>
