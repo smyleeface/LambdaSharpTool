@@ -6,7 +6,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <RootNamespace>MindTouch.LambdaSharp.Tool</RootNamespace>
     <VersionPrefix>0.3</VersionPrefix>
-    <VersionSuffix>RC3</VersionSuffix>
+    <VersionSuffix></VersionSuffix>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AWSSDK.CloudFormation" Version="3.3.11.11"/>

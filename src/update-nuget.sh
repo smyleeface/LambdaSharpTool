@@ -3,7 +3,7 @@
 # - allow LAMBDASHARP_SUFFIX to be passed in
 
 # Set version SUFFIX
-LAMBDASHARP_SUFFIX=RC3
+LAMBDASHARP_SUFFIX=
 
 update() {
     rm bin/Release/*.nupkg
@@ -11,7 +11,7 @@ update() {
     dotnet clean
 
     dotnet pack \
-        --version-suffix $LAMBDASHARP_SUFFIX \
+        --version-suffix "$LAMBDASHARP_SUFFIX" \
         --configuration Release
 
     dotnet nuget push \
