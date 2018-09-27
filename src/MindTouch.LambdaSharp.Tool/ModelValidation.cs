@@ -184,8 +184,6 @@ namespace MindTouch.LambdaSharp.Tool {
                 ValidateNotBothStatements("Value", "Properties", resource.Properties == null);
                 if(parameter.Value is string text) {
                     ValidateARN(text);
-                } else {
-                    AddError("resource reference must be a literal value");
                 }
             } else if(parameter.Values != null) {
                 resource.Type = resource.Type ?? "AWS";

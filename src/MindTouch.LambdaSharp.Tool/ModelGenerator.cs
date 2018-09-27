@@ -756,11 +756,13 @@ namespace MindTouch.LambdaSharp.Tool {
                     }
 
                     // add reference resource parameter value as CloudFormation parameter so it can be referenced
-                    _stack.Add(referenceResourceParameter.FullName, new Parameter {
-                        Type = "String",
-                        Default = resource.ResourceArn,
-                        Description = referenceResourceParameter.Description
-                    });
+                    if(resource.ResourceArn is string text) {
+                        _stack.Add(referenceResourceParameter.FullName, new Parameter {
+                            Type = "String",
+                            Default = text,
+                            Description = referenceResourceParameter.Description
+                        });
+                    }
                 }
                 break;
             case CloudFormationResourceParameter cloudFormationResourceParameter: {

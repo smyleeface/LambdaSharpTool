@@ -215,7 +215,7 @@ namespace MindTouch.LambdaSharp.Tool {
                             AtLocation("Resource", () => {
 
                                 // existing resource
-                                var resource = ConvertResource((string)parameter.Value, parameter.Resource);
+                                var resource = ConvertResource(parameter.Value, parameter.Resource);
                                 result = new ReferencedResourceParameter {
                                     Name = parameter.Name,
                                     Description = parameter.Description,
@@ -286,7 +286,7 @@ namespace MindTouch.LambdaSharp.Tool {
             return resultList;
         }
 
-        public Resource ConvertResource(string resourceArn, ResourceNode resource) {
+        public Resource ConvertResource(object resourceArn, ResourceNode resource) {
 
             // parse resource allowed operations
             var allowList = new List<string>();
