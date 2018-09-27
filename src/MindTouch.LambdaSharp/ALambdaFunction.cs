@@ -24,6 +24,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Amazon.KeyManagementService;
@@ -188,7 +189,7 @@ namespace MindTouch.LambdaSharp {
                     // plain string value
                     parameters.Add(EnvToVarKey(key), value);
                 } else if(key.StartsWith("SEC_", StringComparison.Ordinal)) {
-
+                    
                     // secret with optional encryption context pairs
                     var parts = value.Split('|');
                     Dictionary<string, string> encryptionContext = null;
@@ -206,7 +207,7 @@ namespace MindTouch.LambdaSharp {
                         }
                     }
                     var plaintextStream = (await _kmsClient.DecryptAsync(new DecryptRequest {
-                        CiphertextBlob = new MemoryStream(Convert.FromBase64String(value)),
+                        CiphertextBlob = new MemoryStream(Convert.FromBase64String(parts[0])),
                         EncryptionContext = encryptionContext
                     })).Plaintext;
                     parameters.Add(EnvToVarKey(key), Encoding.UTF8.GetString(plaintextStream.ToArray()));
