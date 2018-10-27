@@ -271,7 +271,6 @@ namespace MindTouch.LambdaSharp.Tool {
                 ++index;
                 AtLocation($"{index}", () => {
                     if(source.Api != null) {
-                        ValidateNotBothStatements("Api", "Schedule", source.Schedule == null);
                         ValidateNotBothStatements("Api", "Name", source.Name == null);
                         ValidateNotBothStatements("Api", "S3", source.S3 == null);
                         ValidateNotBothStatements("Api", "Events", source.Events == null);
@@ -287,7 +286,6 @@ namespace MindTouch.LambdaSharp.Tool {
                         ValidateNotBothStatements("Api", "Kinesis", source.Kinesis == null);
                         ValidateNotBothStatements("Api", "Macro", source.Macro == null);
                     } else if(source.Schedule != null) {
-                        ValidateNotBothStatements("Schedule", "Api", source.Api == null);
                         ValidateNotBothStatements("Schedule", "OperationName", source.OperationName == null);
                         ValidateNotBothStatements("Schedule", "APiKeyRequired", source.ApiKeyRequired == null);
                         ValidateNotBothStatements("Schedule", "Integration", source.Integration == null);
