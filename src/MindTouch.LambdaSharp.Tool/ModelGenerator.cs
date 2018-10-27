@@ -152,6 +152,7 @@ namespace MindTouch.LambdaSharp.Tool {
                 // create module IAM role used by all functions
                 _stack.Add("ModuleRole", new IAM.Role {
                     AssumeRolePolicyDocument = new PolicyDocument {
+                        Version = "2012-10-17",
                         Statement = new List<Statement> {
                             new Statement {
                                 Sid = "LambdaInvocation",
@@ -167,7 +168,8 @@ namespace MindTouch.LambdaSharp.Tool {
                         new IAM.Policy {
                             PolicyName = $"{Settings.Tier}-{_module.Name}-policy",
                             PolicyDocument = new PolicyDocument {
-
+                                Version = "2012-10-17",
+                                
                                 // NOTE: additional resource statements can be added by resources
                                 Statement = _resourceStatements
                             }
@@ -209,6 +211,7 @@ namespace MindTouch.LambdaSharp.Tool {
                     var restApiRoleName = restApiName + "Role";
                     _stack.Add(restApiRoleName, new IAM.Role {
                         AssumeRolePolicyDocument = new PolicyDocument {
+                            Version = "2012-10-17",
                             Statement = new List<Statement> {
                                 new Statement {
                                     Sid = "LambdaRestApiInvocation",
@@ -224,6 +227,7 @@ namespace MindTouch.LambdaSharp.Tool {
                             new IAM.Policy {
                                 PolicyName = $"{_module.Name}RestApiRolePolicy",
                                 PolicyDocument = new PolicyDocument {
+                                    Version = "2012-10-17",
                                     Statement = new List<Statement> {
                                         new Statement {
                                             Sid = "LambdaRestApiLogging",
@@ -387,7 +391,7 @@ namespace MindTouch.LambdaSharp.Tool {
                     _stack.Add(methodName, apiMethod);
                     _stack.Add($"{method.Function.Name}{methodName}Permission", new Lambda.Permission {
                         Action = "lambda:InvokeFunction",
-                        FunctionName = Fn.GetAtt(method.Function.Name, "Arn"),
+                        FunctionName = Fn.Ref(method.Function.Name),
                         Principal = "apigateway.amazonaws.com",
                         SourceArn = Fn.Sub(
                             $"arn:aws:execute-api:{Settings.AwsRegion}:{Settings.AwsAccountId}:${{RestApi}}/LATEST/{method.Method}/{string.Join("/", method.Path)}",
@@ -513,7 +517,7 @@ namespace MindTouch.LambdaSharp.Tool {
                     _stack.Add($"{function.Name}{topicSource.TopicName}SnsPermission", new Lambda.Permission {
                         Action = "lambda:InvokeFunction",
                         SourceArn = resourceReference,
-                        FunctionName = Fn.GetAtt(function.Name, "Arn"),
+                        FunctionName = Fn.Ref(function.Name),
                         Principal = "sns.amazonaws.com"
                     });
                     _stack.Add($"{function.Name}{topicSource.TopicName}Subscription", new SNS.Subscription {
@@ -529,42 +533,47 @@ namespace MindTouch.LambdaSharp.Tool {
             if(scheduleSources.Any()) {
                 for(var i = 0; i < scheduleSources.Count; ++i) {
                     var name = function.Name + "ScheduleEvent" + (i + 1).ToString("00");
-                    _stack.Add(name, new Events.Rule {
+                    var eventRule = new Events.Rule {
                         ScheduleExpression = scheduleSources[i].Expression,
                         Targets = new List<Events.RuleTypes.Target> {
                             new Events.RuleTypes.Target {
                                 Id = ToAppResourceName(name),
-                                Arn = Fn.GetAtt(function.Name, "Arn"),
-                                InputTransformer = new Events.RuleTypes.InputTransformer {
-                                    InputPathsMap = new Dictionary<string, dynamic> {
-                                        ["version"] = "$.version",
-                                        ["id"] = "$.id",
-                                        ["source"] = "$.source",
-                                        ["account"] = "$.account",
-                                        ["time"] = "$.time",
-                                        ["region"] = "$.region"
-                                    },
-                                    InputTemplate =
-@"{
-  ""Version"": <version>,
-  ""Id"": <id>,
-  ""Source"": <source>,
-  ""Account"": <account>,
-  ""Time"": <time>,
-  ""Region"": <region>,
-  ""tName"": """ + scheduleSources[i].Name + @"""
-}"
-                                }
+                                Arn = Fn.GetAtt(function.Name, "Arn")
                             }
                         }
+                    };
+                    if (!string.IsNullOrEmpty(scheduleSources[i].Input)) {
+                        eventRule.Targets.FirstOrDefault().Input = scheduleSources[i].Input;
+                    }
+                    else {
+                        eventRule.Targets.FirstOrDefault().InputTransformer = new Events.RuleTypes.InputTransformer {
+                            InputPathsMap = new Dictionary<string, dynamic> {
+                                ["version"] = "$.version",
+                                ["id"] = "$.id",
+                                ["source"] = "$.source",
+                                ["account"] = "$.account",
+                                ["time"] = "$.time",
+                                ["region"] = "$.region"
+                            },
+                            InputTemplate = @"{
+                                      ""Version"": <version>,
+                                      ""Id"": <id>,
+                                      ""Source"": <source>,
+                                      ""Account"": <account>,
+                                      ""Time"": <time>,
+                                      ""Region"": <region>,
+                                      ""tName"": """ + scheduleSources[i].Name + @"""
+                                    }"
+                        };
+                    }
+                    _stack.Add(name, eventRule);
+                    _stack.Add(function.Name + "ScheduleEventPermission", new Lambda.Permission {
+                        Action = "lambda:InvokeFunction",
+                        FunctionName = Fn.Ref(function.Name),
+                        Principal = "events.amazonaws.com",
+                        SourceArn = Fn.GetAtt(name, "Arn")
                     });
                 }
-                _stack.Add(function.Name + "ScheduleEventPermission", new Lambda.Permission {
-                    Action = "lambda:InvokeFunction",
-                    SourceAccount = Settings.AwsAccountId,
-                    FunctionName = Fn.GetAtt(function.Name, "Arn"),
-                    Principal = "events.amazonaws.com"
-                });
             }
 
             // check if function has any API gateway event sources
@@ -592,7 +601,7 @@ namespace MindTouch.LambdaSharp.Tool {
                         Action = "lambda:InvokeFunction",
                         SourceAccount = Settings.AwsAccountId,
                         SourceArn = Fn.GetAtt(grp.Key, "Arn"),
-                        FunctionName = Fn.GetAtt(function.Name, "Arn"),
+                        FunctionName = Fn.Ref(function.Name),
                         Principal = "s3.amazonaws.com"
                     });
                     _stack.Add(functionS3Subscription, new Model.CustomResource("Custom::LambdaSharpS3Subscriber") {
@@ -640,7 +649,7 @@ namespace MindTouch.LambdaSharp.Tool {
                         : index.ToString();
                     _stack.Add($"{function.Name}AlexaPermission{suffix}", new Lambda.Permission {
                         Action = "lambda:InvokeFunction",
-                        FunctionName = Fn.GetAtt(function.Name, "Arn"),
+                        FunctionName = Fn.Ref(function.Name),
                         Principal = "alexa-appkit.amazon.com",
                         EventSourceToken = source.EventSourceToken
                     });
