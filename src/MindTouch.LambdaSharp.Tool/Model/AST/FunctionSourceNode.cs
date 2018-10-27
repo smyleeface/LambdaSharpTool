@@ -37,6 +37,7 @@ namespace MindTouch.LambdaSharp.Tool.Model.AST {
         // CloudWatch Schedule Event Source
         public string Schedule { get; set; }
         public string Name { get; set; }
+        public string Input { get; set; }
 
         // S3 Bucket Source
         public string S3 { get; set; }

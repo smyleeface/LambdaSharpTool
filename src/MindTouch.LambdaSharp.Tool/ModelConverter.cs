@@ -389,7 +389,8 @@ namespace MindTouch.LambdaSharp.Tool {
                     return AtLocation("Schedule", () => {
                         return new ScheduleSource {
                             Expression = source.Schedule,
-                            Name = source.Name
+                            Name = source.Name,
+                            Input = source.Input
                         };
                     }, null);
                 }

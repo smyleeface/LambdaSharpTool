@@ -35,5 +35,6 @@ namespace MindTouch.LambdaSharp {
         public DateTime Time { get; set; }
         public string Region { get; set; }
         public string Name { get; set; }
+        public string Input { get; set; }
     }
 }

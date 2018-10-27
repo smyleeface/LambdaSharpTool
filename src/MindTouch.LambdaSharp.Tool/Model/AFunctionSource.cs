@@ -37,6 +37,7 @@ namespace MindTouch.LambdaSharp.Tool.Model {
        //--- Properties ---
         public string Expression { get; set; }
         public string Name { get; set; }
+        public string Input { get; set; }
     }
 
     public enum ApiGatewaySourceIntegration {
